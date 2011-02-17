@@ -1,0 +1,63 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>VimeoSrtPlayer</title>
+	<script type="text/javascript" src="js/swfobject.js"></script> 
+	
+	<script type="text/javascript">
+	
+		var swf = "swf/VimeoSrtPlayer.swf?time="+new Date().getTime();
+		
+		/*
+		supported optional properties for the flashVars object:
+		srtFontSize (Number, text size in pixels)
+		srtMargin (Number, the bottom margin in pixels)
+		*/
+		var flashVars = { 
+			vimeoId:"17712557",
+			srtUrl: "srt/example.srt?time="+new Date().getTime()
+		};
+		 
+		if (location.toString().indexOf('id=')!=-1) {
+			flashVars.vimeoId = location.toString().split('id=')[1].split('$')[0];
+		}
+		
+		var attributes = {
+			bgcolor:"#000000" ,
+			id:"VimeoSrtPlayer" ,
+			name:"VimeoSrtPlayer" ,
+			allowScriptAccess:"always",
+			allowFullScreen:"true"
+		};
+		 
+		var params = {
+			wmode: "transparent"
+		}  
+		
+		swfobject.embedSWF(swf, "flashContent", "400", "225", "9.0.124", "swf/expressInstall.swf", flashVars, params, attributes);
+	</script>
+	
+	<style type="text/css">
+		body {
+			background:#FFF;
+			margin:0;
+			padding:0;
+		}  
+		
+		#flashHolder { 
+			width:400px;
+			height:225px; 
+			margin: 0 auto;
+		}
+	</style>
+</head>
+<body> 
+	<div id="flashHolder">
+		<div id="flashContent">Flash or Javascript not available!</div>
+	</div> 
+	<br>
+	<center>
+		Source: <a href="http://code.google.com/p/vimeosrtplayer/" target="_blank">http://code.google.com/p/vimeosrtplayer/</a>
+	</center>
+</body>
+</html>

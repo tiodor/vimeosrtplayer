@@ -1,0 +1,46 @@
+1
+00:00:01,478 --> 00:00:04,020
+This <i>is</i> an <b>example</b> .srt file.
+
+2
+00:00:05,045 --> 00:00:09,545
+<i>ITALIC TYPE IS SUPPORTED</i>
+
+3
+00:00:09,378 --> 00:00:13,745
+AS WELL AS <b>BOLD TYPE</b>
+..and <b>multiple lines!</b>
+
+4
+00:00:14,812 --> 00:00:17,144
+It even supports
+a third line
+(just in case..)
+
+5
+00:00:18,211 --> 00:00:21,211
+The font used is DejaVu (open source),
+it is embedded in Book, <b>Bold</b> and <i>Oblique</i>
+
+6
+00:00:22,278 --> 00:00:25,678
+Loading custom fonts at runtime might be implemented in near future.
+
+7
+00:00:26,478 --> 00:00:31,079
+The moogaloop wrapper is based on code 
+written by Florian Weil (de.derhess.video.vimeo)
+
+8
+00:00:32,144 --> 00:00:38,178
+Subtitle parsing is based on code
+written by Jankees Van Woezig (nl.inlet42.data.subtitles)
+ 
+9
+00:00:39,812 --> 00:00:42,745
+More is coming soon!
+
+10
+00:00:43,812 --> 00:00:48,378
+This is the last line of the example.srt file
+ 
