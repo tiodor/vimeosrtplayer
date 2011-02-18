@@ -36,22 +36,20 @@ package org.mindpirates.vimeo
 		public var subtitles:SubtitlesLayer;
 		
 		public function VimeoSrtPlayer()
-		{
-			Security.allowDomain("*");
-			Security.loadPolicyFile("http://vimeo.com/moogaloop/crossdomain.xml");
+		{ 
 			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);
 		}
 		
 		private function handleAddedToStage(e:Event):void
 		{   
-			player = new VimeoPlayer(loaderInfo.parameters['vimeoId'], stage.stageWidth, stage.stageHeight); 
+			player = new VimeoPlayer(loaderInfo, stage.stageWidth, stage.stageHeight); 
 			player.addEventListener(VimeoEvent.PLAYER_LOADED, handlePlayerLoaded, false, 0, true); 
 			addChild(player); 
 		} 
 		   
 		private function handlePlayerLoaded(e:Event):void
 		{    
-			var srtConfig:SubtitlesConfig = new SubtitlesConfig(loaderInfo.parameters);
+			var srtConfig:SubtitlesConfig = new SubtitlesConfig(loaderInfo);
 			if (srtConfig.url) {
 				subtitles = new SubtitlesLayer(player);
 				subtitles.init(srtConfig);
