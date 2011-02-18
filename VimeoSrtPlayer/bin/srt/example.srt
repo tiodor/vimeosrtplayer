@@ -1,46 +1,62 @@
 1
 00:00:01,478 --> 00:00:04,020
-This <i>is</i> an <b>example</b> .srt file.
+VimeoSrtPlayer Example
 
 2
 00:00:05,045 --> 00:00:09,545
-<i>ITALIC TYPE IS SUPPORTED</i>
+Support for <i>italic</i> font
 
 3
 00:00:09,378 --> 00:00:13,745
-AS WELL AS <b>BOLD TYPE</b>
-..and <b>multiple lines!</b>
+Support for <b>bold</b> font
 
 4
-00:00:14,812 --> 00:00:17,144
-It even supports
-a third line
-(just in case..)
+00:00:14,812 --> 00:00:16,144
+Multi
+Line
+Support ;)
 
 5
 00:00:18,211 --> 00:00:21,211
-The font used is DejaVu (open source),
-it is embedded in Book, <b>Bold</b> and <i>Oblique</i>
+Fonts: DejaVu
+http://dejavu-fonts.org
 
 6
-00:00:22,278 --> 00:00:25,678
-Loading custom fonts at runtime might be implemented in near future.
+00:00:22,278 --> 00:00:25,678 
+Dejavu Sans
 
 7
 00:00:26,478 --> 00:00:31,079
-The moogaloop wrapper is based on code 
-written by Florian Weil (de.derhess.video.vimeo)
+<b>DejaVu Sans Condensed Bold</b>
 
 8
 00:00:32,144 --> 00:00:38,178
-Subtitle parsing is based on code
-written by Jankees Van Woezig (nl.inlet42.data.subtitles)
+<i>DejaVu Sans Oblique</i>
  
 9
-00:00:39,812 --> 00:00:42,745
-More is coming soon!
+00:00:39,812 --> 00:00:45,745
+[de.derhess.video.vimeo]
+http://blog.derhess.de
 
 10
-00:00:43,812 --> 00:00:48,378
-This is the last line of the example.srt file
- 
+00:00:46,812 --> 00:00:52,745
+[nl.inlet42.data.subtitles]
+http://blog.base42.nl
+
+11
+00:00:53,812 --> 00:00:59,745
+[[ VimeoSrtPlayer ]]
+http://mindpirates.org
+
+12
+00:01:01,812 --> 00:01:10,745
+Video
+
+13
+00:01:01,812 --> 00:01:10,745
+dedicated to
+http://problema-thefilm.org
+
+14
+00:01:11,812 --> 00:01:15,745
+END OF EXAMPLE FILE
