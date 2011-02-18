@@ -2,26 +2,82 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>VimeoSrtPlayer</title>
+	
+	
+	<style type="text/css">
+		body {
+			background:#FFF;
+			margin:10px;
+			padding:0;
+			font-family: Arial;
+			font-size: 12px;
+			text-align: center;
+		}  
+		
+		#flashHolder { 
+			width:400px;
+			height:225px; 
+			margin: 10px auto;
+		} 
+		
+		ul { 
+			width: 400px; 
+			margin: 0px auto;
+			padding: 0;
+			list-style-type: none;
+		} 
+		
+		li {
+			text-align:center;
+			overflow:hidden; 
+		}
+		
+		li span {
+			text-align:left;
+			float:left;
+			width:30%;
+			position:relative;
+			top:5px;
+		}
+		
+		li input { 
+			float:right;
+			width:70%;
+		}
+		
+		li button {
+			margin:5px;
+		}
+		
+	</style>
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script> 
 	<script type="text/javascript" src="js/swfobject.js"></script> 
 	
 	<script type="text/javascript">
 	
-		var swf = "swf/VimeoSrtPlayer.swf?time="+new Date().getTime();
-		
-		/*
-		supported optional properties for the flashVars object:
-		srtFontSize (Number, text size in pixels)
-		srtMargin (Number, the bottom margin in pixels)
-		*/
-		var flashVars = { 
-			vimeoId:"17712557",
-			srtUrl: "srt/example.srt?time="+new Date().getTime()
-		};
-		 
-		if (location.toString().indexOf('id=')!=-1) {
-			flashVars.vimeoId = location.toString().split('id=')[1].split('$')[0];
+		var swf_url = "swf/VimeoSrtPlayer.swf";
+		var srt_url = "srt/example.srt";
+		var vimeo_id = 14960254;
+	  
+		function getParameterByName( name )
+		{
+			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+			var regexS = "[\\?&]"+name+"=([^&#]*)";
+			var regex = new RegExp( regexS );
+			var results = regex.exec( window.location.href );
+			if( results == null )
+				return "";
+			else
+				return decodeURIComponent(results[1].replace(/\+/g, " "));
 		}
 		
+		var flashVars = { 
+			vimeoId: vimeo_id,
+			srtUrl: srt_url,
+			srtFontSize: 14
+		};
+		 
 		var attributes = {
 			bgcolor:"#000000" ,
 			id:"VimeoSrtPlayer" ,
@@ -31,33 +87,62 @@
 		};
 		 
 		var params = {
-			wmode: "transparent"
+			wmode: "window"
 		}  
 		
-		swfobject.embedSWF(swf, "flashContent", "400", "225", "9.0.124", "swf/expressInstall.swf", flashVars, params, attributes);
+		var query_id = getParameterByName('id');
+		if (query_id) {
+			flashVars.vimeoId = vimeo_id = query_id;
+		}
+		
+		var query_srt = getParameterByName('srt');
+		if (query_srt) {
+			flashVars.srtUrl = query_srt;
+		}
+		
+		swfobject.embedSWF(swf_url+"?time="+new Date().getTime(), "flashContent", "400", "225", "10.0.0", "swf/expressInstall.swf", flashVars, params, attributes);
+		
+		$(document).ready(function() {
+			$('#vimeo_id').val(flashVars.vimeoId);
+			$('#srt_url').val(flashVars.srtUrl);
+			$('#apply').click(function() {
+				var url = $(location).attr('href').split('?')[0];
+				url += '?id='+$('#vimeo_id').val();
+				url += '&srt='+$('#srt_url').val();
+				$(location).attr('href', url);
+			});
+			$('#clear').click(function() {
+				$(location).attr('href', $(location).attr('href').split('?')[0]);
+			});
+			$('input').keydown(function(event) {
+				if (event.keyCode == '13') {
+					$('#apply').click();
+				}
+			});
+		});
+		
 	</script>
 	
-	<style type="text/css">
-		body {
-			background:#FFF;
-			margin:0;
-			padding:0;
-		}  
-		
-		#flashHolder { 
-			width:400px;
-			height:225px; 
-			margin: 0 auto;
-		}
-	</style>
 </head>
 <body> 
+	<h1>VimeoSrtPlayer AS3 Example</h1>
 	<div id="flashHolder">
-		<div id="flashContent">Flash or Javascript not available!</div>
+		<div id="flashContent">Flash and Javascript required</div>
 	</div> 
-	<br>
-	<center>
-		Source: <a href="http://code.google.com/p/vimeosrtplayer/" target="_blank">http://code.google.com/p/vimeosrtplayer/</a>
-	</center>
+	<ul>
+		<li>
+			<span>vimeo id:</span> 
+			<input id="vimeo_id" type="text">
+		</li>
+		<li>
+			<span>.srt url:</span> 
+			<input id="srt_url" type="text">
+		</li>
+		<li>
+			<button id="clear">Clear</button>
+			<button id="apply">Apply</button>
+		</li>
+	</ul>
+	 
 </body>
 </html>

@@ -1,14 +1,16 @@
 package org.mindpirates.subtitles
 {  
+	import flash.display.LoaderInfo;
+
 	/** 
 	 * @author Jovica Aleksic
 	 */
 	public class SubtitlesConfig
 	{
 		private var _data:Object;
-		public function SubtitlesConfig(parameters:Object)
+		public function SubtitlesConfig(info:LoaderInfo)
 		{ 
-			_data = parameters;
+			_data = info.parameters;
 		}
 		public function get url():String
 		{

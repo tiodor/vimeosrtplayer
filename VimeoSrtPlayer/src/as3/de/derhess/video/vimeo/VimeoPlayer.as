@@ -3,17 +3,23 @@ package de.derhess.video.vimeo {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Loader;
+	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
 	import flash.display.StageDisplayState;
 	import flash.events.Event;
 	import flash.events.FullScreenEvent;
+	import flash.events.IOErrorEvent;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.media.Video;
 	import flash.net.URLRequest;
+	import flash.system.ApplicationDomain;
+	import flash.system.LoaderContext;
 	import flash.system.Security;
 	import flash.utils.Timer;
+	import flash.utils.getDefinitionByName;
+	 
 	 
 	 
 	
@@ -47,44 +53,30 @@ package de.derhess.video.vimeo {
         //  Class variables
         //
         //--------------------------------------------------------------------------
+		public static const MOOGALOOP_URL:String = "http://api.vimeo.com/moogaloop_api.swf"; 
+		
 		public static var MAX_REPEAT_SAME_CURRENT_TIME:int = 3;
 		
 		//--------------------------------------------------------------------------
-        //
-        //  Initialization
-        //
-        //--------------------------------------------------------------------------
-		public function VimeoPlayer(clip_id:int, w:int, h:int) {
-			this.setDimensions(w, h);
-			
-			Security.allowDomain("http://bitcast.vimeo.com");
-			
-			var loader:Loader = new Loader();
-			var request:URLRequest = new URLRequest("http://bitcast.vimeo.com/vimeo/swf/moogaloop.swf?clip_id=" + clip_id + "&width=" + w + "&height=" + h + '&fullscreen=1');
-			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete,false,0,true);
-			loader.load(request);
-			
-			
-			addEventListener(VimeoEvent.STATUS, handleStatus, false, 0, true); 
-			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);
-			addEventListener(MouseEvent.CLICK, handleUIClick, true, 0, true);
-			
-		}
-		private function handleStatus(e:VimeoEvent):void
-		{
-			if (e.info == VimeoPlayingState.PLAYING && getCurrentVideoTime() > 0) {
-				playedOnce = true;
-			}
-		}
-		private function handleAddedToStage(e:Event):void
-		{ 
-			stage.addEventListener(FullScreenEvent.FULL_SCREEN, handleFullscreenChanged, false, 0, true)
-		}
+		//
+		//  Variables
+		//
 		//--------------------------------------------------------------------------
-        //
-        //  Variables
-        //
-        //--------------------------------------------------------------------------
+		
+		
+		
+		/**
+		 * A sprite that contains the video as well as the thumbnail images and functions to show them
+		 */
+		public var video_manager:Object;
+		
+		/**
+		 * The actual video object instance within moogaloop
+		 */
+		public var video:Video;
+		public var overlay:Sprite;
+		
+		
 		private var container:Sprite = new Sprite(); // sprite that holds the player
 		public var moogaloop:Object = false; // the player
 		private var player_mask:Sprite = new Sprite(); // some sprites inside moogaloop go outside the bounds of the player. we use a mask to hide it
@@ -102,22 +94,23 @@ package de.derhess.video.vimeo {
 		private var oldCurrentTime:Number = 0;
 		private var completeCurrentTimeCounter:int = 0;
 		private var playedOnce:Boolean = false;
+		private var url:String;
 		
 		//--------------------------------------------------------------------------
-        //
-        //  Properties
-        //
-        //--------------------------------------------------------------------------
+		//
+		//  Properties
+		//
+		//--------------------------------------------------------------------------
 		public var player_width:int = 400; // To Change the player size use the setSize(w,h) function
 		public var player_height:int = 300; // To Change the player size use the setSize(w,h) function
 		public var enableCompleteEvent:Boolean = true; // when set this to false, the wrapper class will stop dispatching Events - (Perfomance)
 		public var enablePlayheadEvent:Boolean = true; // when set this to false, the wrapper class will stop dispatching Playing Status Events (Perfomance))
 		
 		//--------------------------------------------------------------------------
-        //
-        //  Additional getters and setters
-        //
-        //--------------------------------------------------------------------------
+		//
+		//  Additional getters and setters
+		//
+		//--------------------------------------------------------------------------
 		/**
 		 * return if the video is playing or not
 		 * @return
@@ -126,6 +119,46 @@ package de.derhess.video.vimeo {
 		{
 			return moogaloop.api_isPlaying();
 		}
+		//--------------------------------------------------------------------------
+        //
+        //  Initialization
+        //
+        //--------------------------------------------------------------------------
+		private var clip_id:int; 
+		private var loaderParams:Object;
+		public function VimeoPlayer(info:LoaderInfo, w:int, h:int) {
+			this.setDimensions(w, h);
+			loaderParams = info.parameters;
+			clip_id = loaderParams['vimeoId'];
+			Security.allowDomain("*");
+			Security.loadPolicyFile("http://vimeo.com/moogaloop/crossdomain.xml");
+			url = MOOGALOOP_URL + "?clip_id="+clip_id + "&width=" + w + "&height=" + h + "&fullscreen=1";
+ 
+			var loader:Loader = new Loader(); 
+			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
+			loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleLoadingError, false, 0, true);
+			loader.load(new URLRequest(url));
+			
+			addEventListener(VimeoEvent.STATUS, handleStatus, false, 0, true); 
+			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);
+			addEventListener(MouseEvent.CLICK, handleUIClick, true, 0, true);
+			
+		}
+		private function handleLoadingError(e:Event):void
+		{
+			throw new Error('Failed loading '+url)
+		}
+		private function handleStatus(e:VimeoEvent):void
+		{
+			if (e.info == VimeoPlayingState.PLAYING && getCurrentVideoTime() > 0) {
+				playedOnce = true;
+			}
+		}
+		private function handleAddedToStage(e:Event):void
+		{ 
+			stage.addEventListener(FullScreenEvent.FULL_SCREEN, handleFullscreenChanged, false, 0, true)
+		}
+		
 		
 		/**
 		 * Returns the current video playhead time in milli seconds
@@ -538,7 +571,8 @@ package de.derhess.video.vimeo {
 			player_height = h;
 		}
 		
-		private function onComplete(e:Event):void {
+		private function onComplete(e:Event):void 
+		{ 
 			// Finished loading moogaloop
 			container.addChild(e.target.loader.content);
 			moogaloop = e.target.loader.content;
@@ -555,21 +589,10 @@ package de.derhess.video.vimeo {
 			load_timer.start(); 
 		}
 		
+		
 		/**
 		 * Wait for Moogaloop to finish setting up
 		 */
-		
-		/**
-		 * A sprite that contains the video as well as the thumbnail images and functions to show them
-		 */
-		public var video_manager:Object;
-		
-		/**
-		 * The actual video object instance within moogaloop
-		 */
-		public var video:Video;
-		public var overlay:Sprite;
-		
 		private function playerLoadedCheck(e:TimerEvent):void {
 			if( moogaloop.player_loaded ) {
 				// Moogaloop is finished configuring
@@ -655,7 +678,7 @@ package de.derhess.video.vimeo {
 		/**
 		 * Fake the mouse move/out events for Moogaloop
 		 */
-		private function mouseMove(e:MouseEvent):void {
+		private function mouseMove(e:MouseEvent):void {  
 			if( this.mouseX >= this.x && this.mouseX <= this.x + this.player_width &&
 				this.mouseY >= this.y && this.mouseY <= this.y + this.player_height ) {
 				moogaloop.mouseMove(e);
