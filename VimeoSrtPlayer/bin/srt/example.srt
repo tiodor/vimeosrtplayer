@@ -49,11 +49,12 @@ http://blog.base42.nl
 http://mindpirates.org
 
 12
-00:01:01,812 --> 00:01:10,745
-Video
+00:01:01,812 --> 00:01:05,745
+Video by Kevin Klein
+http://vimeo.com/user4167888
 
 13
-00:01:01,812 --> 00:01:10,745
+00:01:006,812 --> 00:01:13,745
 dedicated to
 http://problema-thefilm.org
 
