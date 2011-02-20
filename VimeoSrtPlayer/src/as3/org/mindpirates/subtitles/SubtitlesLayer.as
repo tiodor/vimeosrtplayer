@@ -1,38 +1,26 @@
 package org.mindpirates.subtitles
-{
-	import com.chewtinfoil.utils.StringUtils; 
+{ 
+	import com.chewtinfoil.utils.StringUtils;
 	
 	import de.derhess.video.vimeo.VimeoEvent;
 	import de.derhess.video.vimeo.VimeoPlayer;
+	import de.loopmode.proxies.XMLProxy;
 	
-	import flash.display.DisplayObject;
-	import flash.display.DisplayObjectContainer;
-	import flash.display.Graphics;
-	import flash.display.Loader;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
-	import flash.filters.DropShadowFilter;
-	import flash.filters.GlowFilter;
-	import flash.geom.Matrix;
-	import flash.geom.Transform;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
-	import flash.text.AntiAliasType;
-	import flash.text.Font;
-	import flash.text.StyleSheet;
-	import flash.text.TextField;
-	import flash.text.TextFieldAutoSize;
-	import flash.text.TextFormat;
-	import flash.text.TextFormatAlign;
 	import flash.utils.Timer;
-	import flash.utils.getDefinitionByName;
 	
 	import nl.inlet42.data.subtitles.SubtitleLine;
 	import nl.inlet42.data.subtitles.SubtitleParser;
 	import nl.inlet42.data.subtitles.SubtitlesList;
+	
+	import org.mindpirates.controls.LanguageComboBox;
+	import org.mindpirates.subtitles.localization.LocalizationXML;
 	 
 	/** 
 	 * @author Jovica Aleksic
@@ -44,12 +32,16 @@ package org.mindpirates.subtitles
 		public var textField:SubtitleTextField;
 		public var player:VimeoPlayer; 
 		public var currentSubtitleLine:SubtitleLine;		 
-		public var currentScale:Number = 1; 
+		public var currentScale:Number = 1;  
+		public var localization:LocalizationXML;
 		private var _config:SubtitlesConfig;		
 		private var _text:String;
 		private var originalSize:Object;
 		private var list:SubtitlesList;
 		private var timer:Timer;
+		
+		public var languageComboBox:LanguageComboBox;
+		
 		public function SubtitlesLayer(vimeoPlayer:VimeoPlayer)
 		{  
 			super();
@@ -77,7 +69,9 @@ package org.mindpirates.subtitles
 			player.video_manager.addChild(textField);
 			
 			loadSrt(config.url); 
-			 
+			
+			initLocalization();
+			
 		}
 		
 		public function get config():SubtitlesConfig
@@ -85,9 +79,12 @@ package org.mindpirates.subtitles
 			return _config;
 		}
 		
+		
+		
+		
 		//-------------------------------------------------------------------------------------------
 		//
-		// EVENT HANDLING
+		// GENERAL EVENT HANDLING
 		// 
 		//-------------------------------------------------------------------------------------------
 		
@@ -96,42 +93,41 @@ package org.mindpirates.subtitles
 		{	 
 			currentScale = player.player_width / originalSize.width; 
 			textField.scale = currentScale;
+			updateComboPosition();
 		} 
 		
 		
 		private function handleTimer(e:Event):void
 		{       
 			// update text
-			if (player.isVideoPlaying) { 
-				var line:SubtitleLine = list.getLineAtTime( player.getCurrentVideoTime() )  
-				if (line) { 
-					if (line != currentSubtitleLine) {
-						currentSubtitleLine = line;
-						text = line.text;
-					}
+			var line:SubtitleLine = list.getLineAtTime( player.getCurrentVideoTime() )  
+			if (line) { 
+				if (line != currentSubtitleLine) {
+					currentSubtitleLine = line;
+					text = line.text;
 				}
-				else if (currentSubtitleLine) { 
-					currentSubtitleLine = null; 
-					text = ""; 
-				}
-			} 
+			}
+			else if (currentSubtitleLine) { 
+				currentSubtitleLine = null; 
+				text = ""; 
+			}
+			
 			if (_text) {  		
 				// update text position		
 				updateTextPosition();
 			}
+			
 				
 			
 		} 
-		
-		
+		 
 		
 		//-------------------------------------------------------------------------------------------
 		//
-		// TEXT HANDLING
+		// SUBTITLE TEXT HANDLING
 		// 
 		//-------------------------------------------------------------------------------------------
-		
-		
+		 
 		public function set text(value:String):void
 		{ 
 			_text = value; 
@@ -148,19 +144,63 @@ package org.mindpirates.subtitles
 			textField.htmlText = StringUtils.removeExtraWhitespace(value); 
 			updateTextPosition();
 		} 
+		
 		public function get text():String
 		{
 			return _text;
 		}
-		
-		
-		
+		 
 		private function updateTextPosition():void
 		{  
 			var margin:Number = config.margin * currentScale + (player.ui.playbar.alpha ? player.ui.playButton.height : 0)
-			textField.y = player.player_height - textField.textHeight*currentScale - margin;
+			textField.y = player.player_height - textField.textHeight*currentScale - margin; 
+			
 		}
 		
+		
+		//-------------------------------------------------------------------------------------------
+		//
+		// LOCALIZATION (Multiple languages)
+		// 
+		//-------------------------------------------------------------------------------------------
+		
+		private function initLocalization():void
+		{	
+			if (config.localization) { 
+				localization = new LocalizationXML();
+				localization.addEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete, false, 0, true);
+				localization.addEventListener(XMLProxy.ERROR, handleLocalizationXmlError, false, 0, true); 
+				localization.loadXML(config.localization);
+			}	
+		}
+		
+		private function handleLocalizationXmlComplete(e:Event):void
+		{  
+			languageComboBox = new LanguageComboBox(localization);
+			languageComboBox.width = player.ui.playButton.width;
+			languageComboBox.addEventListener(Event.CHANGE, handleLanguageChange, false, 0, true);
+			player.ui.playbar.addChild(languageComboBox);
+			updateComboPosition();
+		}
+		private function handleLocalizationXmlError(e:Event):void
+		{
+			throw new Error('Localization url '+config.localization+' not loaded!');
+		}
+		
+		private function handleLanguageChange(e:Event):void
+		{
+			var lang:String = languageComboBox.selectedItem.label
+			var srt:String = localization.getFileByLang(lang) ;
+			loadSrt( srt );
+		} 
+		
+		private function updateComboPosition():void
+		{
+			if (languageComboBox) { 
+				languageComboBox.x = player.ui.playButton.x;
+				languageComboBox.y = player.player_height - languageComboBox.height - player.ui.playButton.height - 20;
+			}
+		}
 		
 		//-------------------------------------------------------------------------------------------
 		//
@@ -171,7 +211,7 @@ package org.mindpirates.subtitles
 		 
 		
 		public function loadSrt(file:String):void
-		{
+		{ 
 			var urlLoader:URLLoader = new URLLoader( new URLRequest( file ) );
 			urlLoader.addEventListener(Event.COMPLETE, handleSrtLoaded, false, 0, true);
 			urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleSrtError, false, 0, true);
@@ -182,7 +222,7 @@ package org.mindpirates.subtitles
 			throw new Error('Failed loading subtitles: ' + e);
 		}
 		private function handleSrtLoaded(e:Event):void
-		{  
+		{ 
 			var lines:Array = SubtitleParser.parseSRT( e.target.data.toString() );
 			list = new SubtitlesList(lines);			
 			timer.start(); 			

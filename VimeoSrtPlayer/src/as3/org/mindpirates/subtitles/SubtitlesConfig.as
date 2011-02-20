@@ -30,5 +30,12 @@ package org.mindpirates.subtitles
 			}
 			return Number(_data.srtMargin);
 		}
+		public function get localization():String
+		{
+			if (!_data.localization) {
+				return null;
+			}
+			return String(_data.localization);
+		}
 	}
 }

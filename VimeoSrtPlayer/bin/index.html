@@ -58,6 +58,7 @@
 	
 		var swf_url = "swf/VimeoSrtPlayer.swf";
 		var srt_url = "srt/example.srt";
+		var localization_url = "srt/subtitles.xml"+'?time='+new Date().getTime();
 		var vimeo_id = 14960254;
 	  
 		function getParameterByName( name )
@@ -75,7 +76,8 @@
 		var flashVars = { 
 			vimeoId: vimeo_id,
 			srtUrl: srt_url,
-			srtFontSize: 14
+			srtFontSize: 14,
+			localization: localization_url
 		};
 		 
 		var attributes = {
