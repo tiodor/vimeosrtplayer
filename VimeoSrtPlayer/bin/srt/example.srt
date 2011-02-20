@@ -23,11 +23,11 @@ http://dejavu-fonts.org
 
 6
 00:00:22,278 --> 00:00:25,678 
-Dejavu Sans
+DejaVu Sans Book
 
 7
 00:00:26,478 --> 00:00:31,079
-<b>DejaVu Sans Condensed Bold</b>
+<b>DejaVu Sans Bold</b>
 
 8
 00:00:32,144 --> 00:00:38,178
