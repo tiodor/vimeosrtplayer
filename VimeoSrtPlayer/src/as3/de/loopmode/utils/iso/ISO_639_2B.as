@@ -3,7 +3,7 @@ package de.loopmode.utils.iso
 	
 	/**
 	 * Provides ISO 639-2/B Codes for 184 languages as listed in http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-	 * Created by as3isocodes.js script (http://loopmode.de/lib-js/jquery-as3isocodes)
+	 * Created by as3isocodes.js script (http://loopmode.de/lib-js/jquery-as3isocodes/as3-ISO_639-2B.js)
 	 * @author Jovica Aleksic
 	 * @email loopmode@loopmode.de
 	 */

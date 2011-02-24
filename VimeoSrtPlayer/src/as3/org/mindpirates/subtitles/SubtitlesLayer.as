@@ -28,8 +28,7 @@ package org.mindpirates.subtitles
 	import nl.inlet42.data.subtitles.SubtitleParser;
 	import nl.inlet42.data.subtitles.SubtitlesList;
 	
-	import org.mindpirates.subtitles.localization.LocalizationXML;
-	import org.osflash.thunderbolt.Logger;
+	import org.mindpirates.subtitles.localization.LocalizationXML; 
 	 
 	/** 
 	 * @author Jovica Aleksic
@@ -197,8 +196,7 @@ package org.mindpirates.subtitles
 		private function handleLocalizationXmlComplete(e:Event):void
 		{   
 			createCombo();
-			updateComboPosition();
-			Logger.info('localization.defaultLang: '+localization.defaultLang);
+			updateComboPosition(); 
 			if (localization.defaultLang) {
 				setLanguage(localization.defaultLang);
 			}

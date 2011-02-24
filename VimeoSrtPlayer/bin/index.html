@@ -48,17 +48,18 @@
 		li button {
 			margin:5px;
 		}
+		 
 		
 	</style>
 	
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script> 
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>  
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script> 
 	
 	<script type="text/javascript">
 	
 		var swf_url = "swf/VimeoSrtPlayer.swf";
 		var srt_url = "srt/example.srt";
-		var localization_url = "srt/subtitles.xml"+'?time='+new Date().getTime();
+		var localization_url = "srt/subtitles.xml";
 		var vimeo_id = 14960254;
 	  
 		function getParameterByName( name )
@@ -75,9 +76,9 @@
 		
 		var flashVars = { 
 			vimeoId: vimeo_id,
+			srt: 'srt/example.srt',
 			srtFontSize: 14,
-			localization: localization_url,
-			srt: 'srt/example.srt'
+			localization: localization_url
 		};
 		 
 		var attributes = {
@@ -131,6 +132,16 @@
 	<div id="flashHolder">
 		<div id="flashContent">Flash and Javascript required</div>
 	</div> 
+	
+	<hr>
+	 
+	<h2>New: Multi-language support</h2>
+	<p>
+		<label>2011-02-24</label><br>
+		See <a href="srt/subtitles.xml" target="_blank">subtitles.xml</a> file.
+	</p>
+	<hr>
+	<h3>Quick test</h3>
 	<ul>
 		<li>
 			<span>vimeo id:</span> 
@@ -146,9 +157,5 @@
 		</li>
 	</ul>
 	
-	<hr>
-	
-	<div class="lightbox">
-	</div> 
 </body>
 </html>
