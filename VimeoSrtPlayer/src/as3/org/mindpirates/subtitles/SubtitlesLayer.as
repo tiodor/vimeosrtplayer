@@ -28,7 +28,8 @@ package org.mindpirates.subtitles
 	import nl.inlet42.data.subtitles.SubtitleParser;
 	import nl.inlet42.data.subtitles.SubtitlesList;
 	
-	import org.mindpirates.subtitles.localization.LocalizationXML; 
+	import org.mindpirates.subtitles.localization.LocalizationXML;
+	import org.osflash.thunderbolt.Logger;
 	 
 	/** 
 	 * @author Jovica Aleksic
@@ -277,6 +278,12 @@ package org.mindpirates.subtitles
 		
 		public function loadSrt(file:String):void
 		{ 
+			if (!file) {
+				timer.stop();
+				text = "";
+				list = null;
+				return;
+			}
 			var urlLoader:URLLoader = new URLLoader( new URLRequest( file ) );
 			urlLoader.addEventListener(Event.COMPLETE, handleSrtLoaded, false, 0, true);
 			urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleSrtError, false, 0, true);
