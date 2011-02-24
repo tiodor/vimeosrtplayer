@@ -1,8 +1,5 @@
-package org.mindpirates.subtitles.localization
-{
-	import de.loopmode.proxies.XMLProxy;
-	
-	import org.osflash.thunderbolt.Logger;
+package org.mindpirates.subtitles.xml
+{ 
 	 
 	public class LocalizationXML extends XMLProxy
 	{

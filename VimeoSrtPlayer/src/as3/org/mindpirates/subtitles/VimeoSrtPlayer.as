@@ -1,4 +1,4 @@
-package org.mindpirates.vimeo
+package org.mindpirates.subtitles
 {   
 	import de.derhess.video.vimeo.VimeoEvent;
 	import de.derhess.video.vimeo.VimeoPlayer;
@@ -6,14 +6,15 @@ package org.mindpirates.vimeo
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import org.mindpirates.subtitles.xml.ConfigXML;
 	
-	import org.mindpirates.subtitles.SubtitlesConfig;
-	import org.mindpirates.subtitles.SubtitlesLayer;
-	import org.mindpirates.ui.Popup;
-	import org.osflash.thunderbolt.Logger;
 	  
 	
 	/** 
+	 * VimeoSrtPlayer
+	 * Displays .srt subtitles with moogaloop.swf
+	 * http://code.google.com/p/vimeosrtplayer/
+	 * 
 	 * @author Jovica Aleksic
 	 */
 	[SWF(width="450", height="225")]
@@ -38,11 +39,16 @@ package org.mindpirates.vimeo
 		private function handlePlayerLoaded(e:Event):void
 		{      
 			subtitles = new SubtitlesLayer(player);
-			subtitles.init( new SubtitlesConfig(loaderInfo) );
+			subtitles.init( new ConfigXML(loaderInfo) );
 			addChild(subtitles);
 			
 		}  
 		
+		public function destroy():void
+		{
+			subtitles.destroy();
+			player.destroy();
+		}
 		
 	}
 }

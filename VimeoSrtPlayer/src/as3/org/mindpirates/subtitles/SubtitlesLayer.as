@@ -3,10 +3,9 @@ package org.mindpirates.subtitles
 	import com.chewtinfoil.utils.StringUtils;
 	
 	import de.derhess.video.vimeo.VimeoEvent;
-	import de.derhess.video.vimeo.VimeoPlayer;
-	import de.loopmode.graphics.Rect;
-	import de.loopmode.proxies.XMLProxy;
-	import de.loopmode.utils.iso.ISO_639_2B;
+	import de.derhess.video.vimeo.VimeoPlayer; 
+	import org.mindpirates.subtitles.xml.XMLProxy;
+	import org.mindpirates.utils.ISO_639_2B;
 	
 	import fl.controls.ComboBox;
 	import fl.data.DataProvider;
@@ -28,31 +27,31 @@ package org.mindpirates.subtitles
 	import nl.inlet42.data.subtitles.SubtitleParser;
 	import nl.inlet42.data.subtitles.SubtitlesList;
 	
-	import org.mindpirates.subtitles.localization.LocalizationXML;
 	import org.osflash.thunderbolt.Logger;
+	import org.mindpirates.subtitles.xml.ConfigXML;
+	import org.mindpirates.subtitles.xml.LocalizationXML;
 	 
 	/** 
 	 * @author Jovica Aleksic
 	 */
 	  
+	
 	[Event(name="complete",type="flash.events.Event")]
 	public class SubtitlesLayer extends Sprite
 	{ 
+		public var combo:ComboBox;
 		public var textField:SubtitleTextField;
 		public var player:VimeoPlayer; 
 		public var currentSubtitleLine:SubtitleLine;		 
 		public var currentScale:Number = 1;  
 		public var localization:LocalizationXML;
-		private var _config:SubtitlesConfig;		
+		private var _config:ConfigXML;		
 		private var _text:String;
 		private var originalSize:Object;
 		private var list:SubtitlesList;
 		private var timer:Timer;
 		
-		public var combo:ComboBox;
-		
-		//public var languageComboBox:LanguageComboBox;
-		
+		  
 		public function SubtitlesLayer(vimeoPlayer:VimeoPlayer)
 		{  
 			super();
@@ -63,7 +62,7 @@ package org.mindpirates.subtitles
 			originalSize = {width:player.player_width, height:player.player_height}; 
 			 
 		} 
-		public function init(config:SubtitlesConfig):void
+		public function init(config:ConfigXML):void
 		{ 
 			_config = config;
 			
@@ -82,7 +81,7 @@ package org.mindpirates.subtitles
 			initLocalization(); 
 		}
 		
-		public function get config():SubtitlesConfig
+		public function get config():ConfigXML
 		{
 			return _config;
 		}
@@ -202,35 +201,37 @@ package org.mindpirates.subtitles
 				setLanguage(localization.defaultLang);
 			}
 			
+			localization.removeEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete);
+			localization.removeEventListener(XMLProxy.ERROR, handleLocalizationXmlError); 
 		}
 		private function handleLocalizationXmlError(e:Event):void
 		{
 			throw new Error('Localization url '+config.localization+' not loaded!');
+			localization.removeEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete);
+			localization.removeEventListener(XMLProxy.ERROR, handleLocalizationXmlError); 
 		} 
 		private function createCombo():void
 		{
 			combo = new ComboBox();  
-			combo.addEventListener(Event.CHANGE, handleComboChange, false, 0, true);
-			combo.addEventListener(Event.OPEN, handleComboOpen, false, 0, true);
-			combo.addEventListener(Event.CLOSE, handleComboClose, false, 0, true);
+			combo.addEventListener(Event.CHANGE, handleComboChange, false, 0, true); 
 			combo.width = player.ui.playButton.width;
 			combo.height = 20; 
-			combo.setStyle('textPadding',2);
-			//Logger.info( (1516322).toString(16) )
+			combo.setStyle('textPadding',2); 
 			
-			var format:TextFormat=new TextFormat()
+			var format:TextFormat = new TextFormat()
 			format.color = 0xFFFFFF;
 			format.bold = true;
 			format.font = new _UNI_05_53().fontName; 
 			format.size = 8;
 			
+			combo.dropdown.setRendererStyle("embedFonts",true);
+			combo.dropdown.setRendererStyle("textFormat",format);
+			combo.dropdown.setRendererStyle("antiAliasType",AntiAliasType.NORMAL);
+			
 			combo.textField.setStyle("embedFonts",true); 
 			combo.textField.setStyle("textFormat",format);
 			combo.textField.setStyle("antiAliasType",AntiAliasType.NORMAL);
 			combo.textField.textField.autoSize = TextFieldAutoSize.LEFT;
-			combo.dropdown.setRendererStyle("embedFonts",true);
-			combo.dropdown.setRendererStyle("textFormat",format);
-			combo.dropdown.setRendererStyle("antiAliasType",AntiAliasType.NORMAL);
 			
 			var dp:Array = [{label:'no subtitle',lang:null}];
 			for each (var lang:String in ISO_639_2B._codes) {  
@@ -251,15 +252,8 @@ package org.mindpirates.subtitles
 		private function handleComboChange(e:Event):void
 		{  
 			var lang:String = combo.selectedItem.lang;
-			loadSrt(localization.getFileByLang(lang));
-			
-		}
-		private function handleComboOpen(e:Event):void
-		{  
-		}
-		private function handleComboClose(e:Event):void
-		{  			
-		}
+			loadSrt(localization.getFileByLang(lang));			
+		} 
 		private function updateComboPosition():void
 		{
 			if (combo) { 
@@ -299,6 +293,19 @@ package org.mindpirates.subtitles
 			list = new SubtitlesList(lines);			
 			timer.start(); 			
 			dispatchEvent( new Event( Event.COMPLETE ) ); 
+		}
+		
+		
+		
+		
+		public function destroy():void
+		{ 
+			if (combo) {
+				combo.removeEventListener(Event.CHANGE, handleComboChange); 
+			}
+			player.removeEventListener(VimeoEvent.FULLSCREEN, handleFullscreenChange); 
+			timer.removeEventListener(TimerEvent.TIMER, handleTimer);
+			timer.stop();
 		}
 	}
 }

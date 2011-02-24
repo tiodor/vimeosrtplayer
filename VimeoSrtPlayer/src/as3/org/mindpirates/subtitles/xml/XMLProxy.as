@@ -1,4 +1,4 @@
-package de.loopmode.proxies
+package org.mindpirates.subtitles.xml
 { 
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -8,8 +8,8 @@ package de.loopmode.proxies
 	
 	//import org.osflash.thunderbolt.Logger;
 	
-	[Event(name="complete", type="de.loopmode.proxies.XMLProxy")]
-	[Event(name="error", type="de.loopmode.proxies.XMLProxy")]
+	[Event(name="complete", type="org.mindpirates.subtitles.xml.XMLProxy")]
+	[Event(name="error", type="org.mindpirates.subtitles.xml.XMLProxy")]
 	public class XMLProxy extends EventDispatcher
 	{
 		

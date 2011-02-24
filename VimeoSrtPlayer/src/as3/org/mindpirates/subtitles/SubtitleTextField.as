@@ -9,6 +9,7 @@ package org.mindpirates.subtitles
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
+	import org.mindpirates.subtitles.xml.ConfigXML;
 	
 	/** 
 	 * @author Jovica Aleksic
@@ -16,7 +17,7 @@ package org.mindpirates.subtitles
 	public class SubtitleTextField extends TextField
 	{ 
 		
-		public function SubtitleTextField(config:SubtitlesConfig)
+		public function SubtitleTextField(config:ConfigXML)
 		{
 			super();
 			
