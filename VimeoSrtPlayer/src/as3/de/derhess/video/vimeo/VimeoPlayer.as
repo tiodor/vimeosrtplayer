@@ -19,6 +19,8 @@ package de.derhess.video.vimeo {
 	import flash.system.Security;
 	import flash.utils.Timer;
 	import flash.utils.getDefinitionByName;
+	
+	import org.osflash.thunderbolt.Logger;
 	 
 	 
 	 
@@ -74,8 +76,11 @@ package de.derhess.video.vimeo {
 		 * The actual video object instance within moogaloop
 		 */
 		public var video:Video;
+		public var loader:Loader;
 		public var overlay:Sprite;
 		
+		 
+		public var embedSettings:XMLList;
 		
 		private var container:Sprite = new Sprite(); // sprite that holds the player
 		public var moogaloop:Object = false; // the player
@@ -134,7 +139,7 @@ package de.derhess.video.vimeo {
 			Security.loadPolicyFile("http://vimeo.com/moogaloop/crossdomain.xml");
 			url = MOOGALOOP_URL + "?clip_id="+clip_id + "&width=" + w + "&height=" + h + "&fullscreen=1";
  
-			var loader:Loader = new Loader(); 
+			loader = new Loader(); 
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
 			loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleLoadingError, false, 0, true);
 			loader.load(new URLRequest(url));
@@ -577,7 +582,7 @@ package de.derhess.video.vimeo {
 			container.addChild(e.target.loader.content);
 			moogaloop = e.target.loader.content;
 			
-			
+				
 			// Create the mask for moogaloop
 			addChild(player_mask);
 			container.mask = player_mask;
@@ -606,6 +611,11 @@ package de.derhess.video.vimeo {
 				
 				
 				
+				//
+				
+				//Defaultvars.getInstance().vars.embed_settings.color   
+				embedSettings = defaultVars.vars.embed_settings; 
+				
 				// set references to moogaloop UI elements
 				ui = new VimeoPlayerUI(this); 
 				video_manager = getInstanceByClass(moogaloop, 'VideoManager');
@@ -616,7 +626,15 @@ package de.derhess.video.vimeo {
 				vimeoEvent.duration = 0;
 				vimeoEvent.info = "";
 				dispatchEvent(vimeoEvent);
+				
+ 
+				
 			}
+		}
+		
+		public function get defaultVars():Object
+		{
+			return loader.contentLoaderInfo.applicationDomain.getDefinition("com.as3.classes::DefaultVars").getInstance();
 		}
 		
 		/**
@@ -675,10 +693,14 @@ package de.derhess.video.vimeo {
 			
 		}
 		
+		public var mouseMoveEnabled:Boolean = true;
 		/**
 		 * Fake the mouse move/out events for Moogaloop
 		 */
-		private function mouseMove(e:MouseEvent):void {  
+		private function mouseMove(e:MouseEvent):void { 
+			if (!mouseMoveEnabled) {
+				return;
+			}
 			if( this.mouseX >= this.x && this.mouseX <= this.x + this.player_width &&
 				this.mouseY >= this.y && this.mouseY <= this.y + this.player_height ) {
 				moogaloop.mouseMove(e);

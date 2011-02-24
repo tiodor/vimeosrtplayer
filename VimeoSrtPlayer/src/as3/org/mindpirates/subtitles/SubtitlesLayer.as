@@ -4,23 +4,32 @@ package org.mindpirates.subtitles
 	
 	import de.derhess.video.vimeo.VimeoEvent;
 	import de.derhess.video.vimeo.VimeoPlayer;
+	import de.loopmode.graphics.Rect;
 	import de.loopmode.proxies.XMLProxy;
+	import de.loopmode.utils.iso.ISO_639_2B;
+	
+	import fl.controls.ComboBox;
+	import fl.data.DataProvider;
 	
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
+	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
+	import flash.text.AntiAliasType;
+	import flash.text.TextFieldAutoSize;
+	import flash.text.TextFormat;
 	import flash.utils.Timer;
 	
 	import nl.inlet42.data.subtitles.SubtitleLine;
 	import nl.inlet42.data.subtitles.SubtitleParser;
 	import nl.inlet42.data.subtitles.SubtitlesList;
 	
-	import org.mindpirates.controls.LanguageComboBox;
 	import org.mindpirates.subtitles.localization.LocalizationXML;
+	import org.osflash.thunderbolt.Logger;
 	 
 	/** 
 	 * @author Jovica Aleksic
@@ -40,23 +49,20 @@ package org.mindpirates.subtitles
 		private var list:SubtitlesList;
 		private var timer:Timer;
 		
-		public var languageComboBox:LanguageComboBox;
+		public var combo:ComboBox;
+		
+		//public var languageComboBox:LanguageComboBox;
 		
 		public function SubtitlesLayer(vimeoPlayer:VimeoPlayer)
 		{  
 			super();
-			
-			mouseEnabled = false; 
-			mouseChildren = false;
-				
+			   
 			player = vimeoPlayer;  
-			player.addEventListener(VimeoEvent.FULLSCREEN, handleFullscreenChange, false, 0, true);
+			player.addEventListener(VimeoEvent.FULLSCREEN, handleFullscreenChange, false, 0, true); 
 			
-			originalSize = {width:player.player_width,height:player.player_height};
-			 
+			originalSize = {width:player.player_width, height:player.player_height}; 
 			 
 		} 
-		 
 		public function init(config:SubtitlesConfig):void
 		{ 
 			_config = config;
@@ -68,18 +74,19 @@ package org.mindpirates.subtitles
 			textField.width = player.player_width; 
 			player.video_manager.addChild(textField);
 			
-			loadSrt(config.url); 
+			if (config.url) {
+				loadSrt(config.url); 
+			}
 			
-			initLocalization();
-			
+			 
+			initLocalization(); 
 		}
 		
 		public function get config():SubtitlesConfig
 		{
 			return _config;
 		}
-		
-		
+		 
 		
 		
 		//-------------------------------------------------------------------------------------------
@@ -88,12 +95,11 @@ package org.mindpirates.subtitles
 		// 
 		//-------------------------------------------------------------------------------------------
 		
-		 
 		private function handleFullscreenChange(e:VimeoEvent):void
 		{	 
 			currentScale = player.player_width / originalSize.width; 
 			textField.scale = currentScale;
-			updateComboPosition();
+			updateComboPosition(); 
 		} 
 		
 		
@@ -163,6 +169,20 @@ package org.mindpirates.subtitles
 		// LOCALIZATION (Multiple languages)
 		// 
 		//-------------------------------------------------------------------------------------------
+ 
+		public function setLanguage(lang:String):void
+		{
+			var file:String = localization.getFileByLang(lang);
+			loadSrt(file);
+			for (var i:int=0,t:int=combo.dataProvider.length; i<t; i++) {
+				var item:Object = combo.dataProvider.getItemAt(i);
+				if (item.lang == lang) {
+					combo.selectedIndex = i;
+				}
+			}
+		}
+		
+		public var currentLanguage:Object;
 		
 		private function initLocalization():void
 		{	
@@ -175,33 +195,80 @@ package org.mindpirates.subtitles
 		}
 		
 		private function handleLocalizationXmlComplete(e:Event):void
-		{  
-			languageComboBox = new LanguageComboBox(localization);
-			languageComboBox.width = player.ui.playButton.width;
-			languageComboBox.addEventListener(Event.CHANGE, handleLanguageChange, false, 0, true);
-			player.ui.playbar.addChild(languageComboBox);
+		{   
+			createCombo();
 			updateComboPosition();
+			Logger.info('localization.defaultLang: '+localization.defaultLang);
+			if (localization.defaultLang) {
+				setLanguage(localization.defaultLang);
+			}
+			
 		}
 		private function handleLocalizationXmlError(e:Event):void
 		{
 			throw new Error('Localization url '+config.localization+' not loaded!');
-		}
-		
-		private function handleLanguageChange(e:Event):void
-		{
-			var lang:String = languageComboBox.selectedItem.label
-			var srt:String = localization.getFileByLang(lang) ;
-			loadSrt( srt );
 		} 
-		
+		private function createCombo():void
+		{
+			combo = new ComboBox();  
+			combo.addEventListener(Event.CHANGE, handleComboChange, false, 0, true);
+			combo.addEventListener(Event.OPEN, handleComboOpen, false, 0, true);
+			combo.addEventListener(Event.CLOSE, handleComboClose, false, 0, true);
+			combo.width = player.ui.playButton.width;
+			combo.height = 20; 
+			combo.setStyle('textPadding',2);
+			//Logger.info( (1516322).toString(16) )
+			
+			var format:TextFormat=new TextFormat()
+			format.color = 0xFFFFFF;
+			format.bold = true;
+			format.font = new _UNI_05_53().fontName; 
+			format.size = 8;
+			
+			combo.textField.setStyle("embedFonts",true); 
+			combo.textField.setStyle("textFormat",format);
+			combo.textField.setStyle("antiAliasType",AntiAliasType.NORMAL);
+			combo.textField.textField.autoSize = TextFieldAutoSize.LEFT;
+			combo.dropdown.setRendererStyle("embedFonts",true);
+			combo.dropdown.setRendererStyle("textFormat",format);
+			combo.dropdown.setRendererStyle("antiAliasType",AntiAliasType.NORMAL);
+			
+			var dp:Array = [{label:'no subtitle',lang:null}];
+			for each (var lang:String in ISO_639_2B._codes) {  
+				if (localization.languages.indexOf( lang ) != -1) {
+					var name:String = ISO_639_2B.getNameByCode(lang); 
+					var item:Object = {
+						'name': name,
+						'lang': lang,			
+						'label': name		
+					}
+					dp.push(item); 
+				}
+			}
+			combo.dataProvider = new DataProvider(dp);
+			player.ui.playbar.addChild(combo);
+			
+		}
+		private function handleComboChange(e:Event):void
+		{  
+			var lang:String = combo.selectedItem.lang;
+			loadSrt(localization.getFileByLang(lang));
+			
+		}
+		private function handleComboOpen(e:Event):void
+		{  
+		}
+		private function handleComboClose(e:Event):void
+		{  			
+		}
 		private function updateComboPosition():void
 		{
-			if (languageComboBox) { 
-				languageComboBox.x = player.ui.playButton.x;
-				languageComboBox.y = player.player_height - languageComboBox.height - player.ui.playButton.height - 20;
+			if (combo) { 
+				combo.x = player.ui.playButton.x;
+				combo.y = player.player_height - combo.height - player.ui.playButton.height - 20;
 			}
 		}
-		
+	 
 		//-------------------------------------------------------------------------------------------
 		//
 		// LOADING THE SRT FILE

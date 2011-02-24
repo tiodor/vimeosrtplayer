@@ -3,7 +3,7 @@ package org.mindpirates.subtitles.localization
 	import de.loopmode.proxies.XMLProxy;
 	
 	import org.osflash.thunderbolt.Logger;
-	
+	 
 	public class LocalizationXML extends XMLProxy
 	{
 		public function LocalizationXML(url:String=null)
@@ -11,8 +11,8 @@ package org.mindpirates.subtitles.localization
 			super(url);
 		}
 		public function get languages():Array
-		{
-			var result:Array = [];
+		{ 
+			var result:Array = []; 
 			for each (var prop:XML in data.srt) 
 			{ 
 				result.push( String(prop.@lang) ); 
@@ -36,6 +36,11 @@ package org.mindpirates.subtitles.localization
 		public function get iconsPath():String
 		{
 			return data.@iconsPath;
+		}
+		
+		public function get defaultLang():String
+		{
+			return data.@defaultLang;
 		}
 	}
 }

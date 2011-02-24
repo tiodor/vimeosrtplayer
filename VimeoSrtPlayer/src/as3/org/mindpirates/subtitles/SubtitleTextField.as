@@ -22,7 +22,7 @@ package org.mindpirates.subtitles
 			
 			var textFormat:TextFormat = new TextFormat();
 			textFormat.align = TextFormatAlign.CENTER; 
-			
+			mouseEnabled = false;
 			selectable = false;
 			embedFonts = true;  
 			multiline = true; 
