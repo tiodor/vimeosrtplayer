@@ -57,9 +57,9 @@
 	
 	<script type="text/javascript">
 	
-		var swf_url = "swf/VimeoSrtPlayer.swf";
+		var swf_url = "swf/VimeoSrtPlayer.swf?time="+new Date().getTime();
 		var srt_url = "srt/example.srt";
-		var localization_url = "srt/subtitles.xml";
+		var localization_url = "srt/subtitles.xml?time="+new Date().getTime();
 		var vimeo_id = 14960254;
 	  
 		function getParameterByName( name )
@@ -75,8 +75,7 @@
 		}
 		
 		var flashVars = { 
-			vimeoId: vimeo_id,
-			srt: 'srt/example.srt',
+			vimeoId: vimeo_id, 
 			srtFontSize: 14,
 			localization: localization_url
 		};
@@ -131,8 +130,8 @@
 	<h1>VimeoSrtPlayer AS3 Example</h1>
 	<div id="flashHolder">
 		<div id="flashContent">Flash and Javascript required</div>
-	</div> 
-	
+	</div>  
+	(current localized subtitles are from "The Lion King" files from opensubtitles.org, and they start at ~01:20)
 	<hr>
 	 
 	<h2>New: Multi-language support</h2>
