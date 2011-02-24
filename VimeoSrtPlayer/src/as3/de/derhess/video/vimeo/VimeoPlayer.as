@@ -19,8 +19,6 @@ package de.derhess.video.vimeo {
 	import flash.system.Security;
 	import flash.utils.Timer;
 	import flash.utils.getDefinitionByName;
-	
-	import org.osflash.thunderbolt.Logger;
 	 
 	 
 	 
@@ -161,7 +159,7 @@ package de.derhess.video.vimeo {
 		}
 		private function handleAddedToStage(e:Event):void
 		{ 
-			stage.addEventListener(FullScreenEvent.FULL_SCREEN, handleFullscreenChanged, false, 0, true)
+			stage.addEventListener(FullScreenEvent.FULL_SCREEN, handleFullscreenChanged, false, 0, true);
 		}
 		
 		

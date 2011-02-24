@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<actionScriptProperties mainApplicationPath="org/mindpirates/vimeo/VimeoSrtPlayer.as" projectUUID="4db75f22-af10-43d7-a6e0-b218f59a3c2b" version="6">
+<actionScriptProperties mainApplicationPath="org/mindpirates/subtitles/VimeoSrtPlayer.as" projectUUID="4db75f22-af10-43d7-a6e0-b218f59a3c2b" version="6">
   <compiler additionalCompilerArguments="-locale en_US" autoRSLOrdering="false" copyDependentFiles="false" flexSDK="Flex 3.5" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin/swf" sourceFolderPath="src/as3" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
     <compilerSourcePath>
       <compilerSourcePathEntry kind="1" linkType="1" path="lib/as3"/>
@@ -32,7 +32,7 @@
     <sourceAttachmentPath/>
   </compiler>
   <applications>
-    <application path="org/mindpirates/vimeo/VimeoSrtPlayer.as"/>
+    <application path="org/mindpirates/subtitles/VimeoSrtPlayer.as"/>
   </applications>
   <modules/>
   <buildCSSFiles/>

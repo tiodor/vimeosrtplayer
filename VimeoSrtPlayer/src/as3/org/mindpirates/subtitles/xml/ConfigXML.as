@@ -1,14 +1,14 @@
-package org.mindpirates.subtitles
+package org.mindpirates.subtitles.xml
 {  
 	import flash.display.LoaderInfo;
 
 	/** 
 	 * @author Jovica Aleksic
 	 */
-	public class SubtitlesConfig
+	public class ConfigXML
 	{
 		private var _data:Object;
-		public function SubtitlesConfig(info:LoaderInfo)
+		public function ConfigXML(info:LoaderInfo)
 		{ 
 			_data = info.parameters;
 		}

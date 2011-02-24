@@ -1,4 +1,4 @@
-package de.loopmode.utils.iso
+package org.mindpirates.utils
 {
 	
 	/**
