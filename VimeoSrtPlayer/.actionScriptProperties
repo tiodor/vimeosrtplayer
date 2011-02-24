@@ -28,7 +28,6 @@
       </libraryPathEntry>
       <libraryPathEntry kind="1" linkType="1" path="lib/swc"/>
       <libraryPathEntry kind="1" linkType="1" path="src/swc"/>
-      <libraryPathEntry kind="3" linkType="1" path="/MindpiratesFlashLib/bin/MindpiratesFlashLib.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

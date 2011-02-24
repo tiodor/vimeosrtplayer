@@ -14,7 +14,7 @@ package org.mindpirates.subtitles
 		}
 		public function get url():String
 		{
-			return _data.srtUrl;
+			return _data.srt;
 		}
 		public function get fontSize():Number
 		{ 
