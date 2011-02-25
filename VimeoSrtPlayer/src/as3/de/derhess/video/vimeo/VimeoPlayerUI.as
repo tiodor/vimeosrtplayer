@@ -1,6 +1,6 @@
 package de.derhess.video.vimeo
 {
-	import flash.display.SimpleButton; 
+	import flash.display.SimpleButton;
 	import flash.display.Sprite;
 	  
 	/**
@@ -17,6 +17,7 @@ package de.derhess.video.vimeo
 		public var tinybutton:Sprite; // :PlayButton
 		public var vimeo_logo:SimpleButton; // :BrandingButton
 		public var timeline:Sprite; // :Timeline
+		public var volume:Sprite; // :Volume
 		public function VimeoPlayerUI(player:VimeoPlayer)
 		{
 			playbar = player.moogaloop.getChildByName('playbar');
@@ -25,6 +26,7 @@ package de.derhess.video.vimeo
 			tinybutton = playbar.tinybutton; 
 			vimeo_logo = playbar.vimeo_logo;
 			timeline = playbar.timeline;
+			volume = playbar.volume;
 		}
 	}
 }

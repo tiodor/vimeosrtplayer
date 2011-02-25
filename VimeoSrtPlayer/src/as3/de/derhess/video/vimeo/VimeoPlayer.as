@@ -12,6 +12,7 @@ package de.derhess.video.vimeo {
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.external.ExternalInterface;
 	import flash.media.Video;
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
@@ -19,6 +20,11 @@ package de.derhess.video.vimeo {
 	import flash.system.Security;
 	import flash.utils.Timer;
 	import flash.utils.getDefinitionByName;
+	
+	import org.mindpirates.subtitles.JSInterface;
+	import org.mindpirates.subtitles.JsEvent;
+	import org.mindpirates.subtitles.VimeoSrtPlayer;
+	import org.osflash.thunderbolt.Logger;
 	 
 	 
 	 
@@ -63,6 +69,7 @@ package de.derhess.video.vimeo {
 		//
 		//--------------------------------------------------------------------------
 		
+		public var js:JSInterface;
 		
 		
 		/**
@@ -98,6 +105,7 @@ package de.derhess.video.vimeo {
 		private var completeCurrentTimeCounter:int = 0;
 		private var playedOnce:Boolean = false;
 		private var url:String;
+		private var isVolumeDragging:Boolean = false;
 		
 		//--------------------------------------------------------------------------
 		//
@@ -128,9 +136,12 @@ package de.derhess.video.vimeo {
         //
         //--------------------------------------------------------------------------
 		private var clip_id:int; 
-		private var loaderParams:Object;
-		public function VimeoPlayer(info:LoaderInfo, w:int, h:int) {
-			this.setDimensions(w, h);
+		private var loaderParams:Object; 
+		
+		public function VimeoPlayer(info:LoaderInfo, w:int, h:int, jsInterface:JSInterface=null) {
+			this.setDimensions(w, h);  
+			js = jsInterface;
+			
 			loaderParams = info.parameters;
 			clip_id = loaderParams['vimeoId'];
 			Security.allowDomain("*");
@@ -145,10 +156,18 @@ package de.derhess.video.vimeo {
 			addEventListener(VimeoEvent.STATUS, handleStatus, false, 0, true); 
 			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);
 			addEventListener(MouseEvent.CLICK, handleUIClick, true, 0, true);
+			addEventListener(MouseEvent.MOUSE_DOWN, handleUIMouseDown, true, 0, true);
+			addEventListener(MouseEvent.MOUSE_UP, handleUIMouseUp, true, 0, true);
+				
 			
 		}
 		private function handleLoadingError(e:Event):void
-		{
+		{ 
+			if (js) {
+				var event:JsEvent = new JsEvent(JsEvent.MOOGALOOP_ERROR);
+				event.moogaloopUrl = url;
+				js.fireEvent(event);
+			}
 			throw new Error('Failed loading '+url)
 		}
 		private function handleStatus(e:VimeoEvent):void
@@ -212,8 +231,13 @@ package de.derhess.video.vimeo {
 		 */
 		public function setVolume(value:Number):void
 		{
-			moogaloop.api_setVolume(value);
+			moogaloop.api_setVolume(value); 
 			volume = value;
+			if (js) {
+				var event:JsEvent = new JsEvent(JsEvent.VOLUME_CHANGED);
+				event.volume = value;
+				js.fireEvent(event);
+			}
 		}
 		
 		public function getVolume():Number
@@ -223,16 +247,82 @@ package de.derhess.video.vimeo {
 		
 		//--------------------------------------------------------------------------
         //
-        //  FIXING SOME UI ACTIONS
+        //  FIXING SOME UI STUFF
         //
         //--------------------------------------------------------------------------
+		
+		/**
+		 * Fires a javascript event when seeking
+		 */ 
+		private function handleOnSeek(time:Number):void
+		{
+			if (js) {
+				var event:JsEvent = new JsEvent(JsEvent.SEEK);
+				event.position = time * getDuration();
+				js.fireEvent(event);
+			}
+		}
+		/**
+		 * Catches the JS callback of moogaloop and loops it back into our player to dispatch an event in our custom way
+		 */
+		private function enableSeekEvents():void
+		{
+			var js_code:XML = 
+				<script>
+					<![CDATA[
+						function(swf_id) {
+							window.onVimeoSeek = function(time){
+								try { document.getElementById(swf_id).onApiSeek(time); }
+								catch (err) {}
+							};
+						}
+					]]>
+				</script>; 
+			
+			ExternalInterface.call(js_code, loaderParams.swfId)
+			ExternalInterface.addCallback('onApiSeek', handleOnSeek);
+			moogaloop.api_addEventListener('onSeek', 'onVimeoSeek'); 
+		}
+		
+		 
+		private function stopEvent(e:Event):void {
+			e.stopImmediatePropagation();
+			e.stopPropagation();
+			e.preventDefault(); 
+		};
+		
+		
+		private function handleUIMouseDown(e:MouseEvent):void
+		{
+			// changing the volume using moogaloop's volume bar causes an IO_Error ("NetworkError: 401 Unauthorized - http://vimeo.com/moogaloop/set_preference/")
+			// workaround by stopping the MOUSE_DOWN event and handling volume changes via the api_setVolume function
+			if (ui.volume.contains(e.target as DisplayObject)) {
+				stopEvent(e);
+				var r:Number = e.localX / ui.volume.width; 
+				setVolume(r*100);
+				isVolumeDragging = true;
+				ui.volume.addEventListener(MouseEvent.MOUSE_MOVE, handleVolumeMouseMove, false, 0, true); 
+			}	
+		}
+		private function handleVolumeMouseMove(e:MouseEvent):void
+		{ 
+			var r:Number = e.localX / ui.volume.width; 
+			setVolume(r*100);
+		} 
+		private function handleUIMouseUp(e:MouseEvent):void
+		{
+			if (isVolumeDragging) {
+				ui.volume.removeEventListener(MouseEvent.MOUSE_MOVE, handleVolumeMouseMove);
+				ui.volume.removeEventListener(MouseEvent.MOUSE_UP, handleVolumeMouseMove);
+			}
+		}
+		
+		/**
+		 * Prevents some default events that would lead to an error and calls api functions instead.
+		 * Fixes fullscreen button and thumbnail image issues.
+		 */
 		private function handleUIClick(e:MouseEvent):void
 		{    
-			var stopEvent:Function = function(e:Event):void {
-				e.stopImmediatePropagation();
-				e.stopPropagation();
-				e.preventDefault(); 
-			};
 			var clickOnThumbnail:Function = function(e:Event):Boolean {
 				return 	e.target.parent && e.target.parent.toString() == '[object VimeoVideo]' && 
 					e.target.parent.parent && e.target.parent.parent.toString() == '[object VideoManager]' && 
@@ -241,7 +331,7 @@ package de.derhess.video.vimeo {
 			var clickOnPlayButton:Function = function(e:Event):Boolean {
 				return e.target.parent == ui.playButton;
 			}	
-			
+				
 			switch (e.target) {
 				case ui.fullscreen_button:
 					toggleFullscreen();
@@ -251,13 +341,18 @@ package de.derhess.video.vimeo {
 					if (clickOnThumbnail(e) || clickOnPlayButton(e)) {
 						stopEvent(e);
 						togglePlayback();
-					} 
+					}
 					break;
 			}
 		}
 		
+		private function handleSeek(e:Event):void
+		{
+			Logger.info('seek!: '+e)
+		}
+		
 		public function togglePlayback():void
-		{			
+		{			 
 			if (isVideoPlaying) {
 				pause();	
 			}
@@ -385,6 +480,12 @@ package de.derhess.video.vimeo {
 				e.duration = 0;
 				e.info = VimeoPlayingState.PLAYING;
 				dispatchEvent(e);
+				
+			}
+			if (js) {
+				var event:JsEvent = new JsEvent(JsEvent.PLAY);
+				event.position = getCurrentVideoTime();
+				js.fireEvent(event);
 			}
 		}
 		
@@ -397,12 +498,18 @@ package de.derhess.video.vimeo {
 			dispatchEvent(e);
 			event_timer.stop();
 			event_timer.reset();
+			if (js) {
+				var event:JsEvent = new JsEvent(JsEvent.PAUSE);
+				event.position = getCurrentVideoTime();
+				js.fireEvent(event);
+			}
 		}
 		
 		/**
 		 * Seek to specific loaded time in video (in seconds)
 		 */
 		public function seekTo(time:int):void {
+			Logger.info('seekTo('+time+')')
 			moogaloop.api_seekTo(time);
 			
 			if (enablePlayheadEvent)
@@ -559,7 +666,8 @@ package de.derhess.video.vimeo {
 			event_timer.removeEventListener(TimerEvent.TIMER, handleEventTimer);
 			event_timer = null;
 			stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMove);
-			 
+			
+			moogaloop.api_addEventListener('onSeek', handleSeek, false, 0, true);
 			removeEventListener(MouseEvent.CLICK, handleUIClick);
 			stage.removeEventListener(FullScreenEvent.FULL_SCREEN, handleFullscreenChanged);
 			
@@ -592,7 +700,6 @@ package de.derhess.video.vimeo {
 			load_timer.start(); 
 		}
 		
-		
 		/**
 		 * Wait for Moogaloop to finish setting up
 		 */
@@ -620,6 +727,17 @@ package de.derhess.video.vimeo {
 				video = video_manager.getChildAt(0).getChildAt(0);
 				overlay = video_manager.getChildAt(0).getChildAt(1);
 				moogaloop.api_enableHDEmbed(); 
+				
+
+				enableSeekEvents();
+					
+				if (js) {
+					var event:JsEvent = new JsEvent(JsEvent.MOOGALOOP_READY);
+					event.duration = getDuration();
+					event.moogaloopUrl = url;
+					js.fireEvent(event);
+				}
+				
 				var vimeoEvent:VimeoEvent = new VimeoEvent(VimeoEvent.PLAYER_LOADED);
 				vimeoEvent.duration = 0;
 				vimeoEvent.info = "";

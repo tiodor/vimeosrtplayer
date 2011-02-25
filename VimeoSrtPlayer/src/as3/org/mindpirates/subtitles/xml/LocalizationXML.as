@@ -29,6 +29,10 @@ package org.mindpirates.subtitles.xml
 		{
 			return data.srt.(@lang==lang).toString();
 		}
+		public function getFontByLang(lang:String):String
+		{
+			return data.srt.(@lang==lang).@font;
+		}
 		
 		public function get iconsPath():String
 		{

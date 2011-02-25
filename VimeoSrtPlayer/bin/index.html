@@ -2,160 +2,223 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>VimeoSrtPlayer</title>
-	
-	
-	<style type="text/css">
-		body {
-			background:#FFF;
-			margin:10px;
-			padding:0;
-			font-family: Arial;
-			font-size: 12px;
-			text-align: center;
-		}  
-		
-		#flashHolder { 
-			width:400px;
-			height:225px; 
-			margin: 10px auto;
-		} 
-		
-		ul { 
-			width: 400px; 
-			margin: 0px auto;
-			padding: 0;
-			list-style-type: none;
-		} 
-		
-		li {
-			text-align:center;
-			overflow:hidden; 
-		}
-		
-		li span {
-			text-align:left;
-			float:left;
-			width:30%;
-			position:relative;
-			top:5px;
-		}
-		
-		li input { 
-			float:right;
-			width:70%;
-		}
-		
-		li button {
-			margin:5px;
-		}
-		 
-		
-	</style>
-	
+	<link rel="stylesheet" type="text/css" href="css/styles.css"> 
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>  
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script> 
-	
-	<script type="text/javascript">
-	
-		var swf_url = "swf/VimeoSrtPlayer.swf?time="+new Date().getTime();
-		var srt_url = "srt/example.srt";
-		var localization_url = "srt/subtitles.xml?time="+new Date().getTime();
-		var vimeo_id = 14960254;
-	  
-		function getParameterByName( name )
-		{
-			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-			var regexS = "[\\?&]"+name+"=([^&#]*)";
-			var regex = new RegExp( regexS );
-			var results = regex.exec( window.location.href );
-			if( results == null )
-				return "";
-			else
-				return decodeURIComponent(results[1].replace(/\+/g, " "));
-		}
-		
-		var flashVars = { 
-			vimeoId: vimeo_id, 
-			srtFontSize: 14,
-			localization: localization_url
-		};
-		 
-		var attributes = {
-			bgcolor:"#000000" ,
-			id:"VimeoSrtPlayer" ,
-			name:"VimeoSrtPlayer" ,
-			allowScriptAccess:"always",
-			allowFullScreen:"true"
-		};
-		 
-		var params = {
-			wmode: "window"
-		}  
-		
-		var query_id = getParameterByName('id');
-		if (query_id) {
-			flashVars.vimeoId = vimeo_id = query_id;
-		}
-		
-		var query_srt = getParameterByName('srt');
-		if (query_srt) {
-			flashVars.srtUrl = query_srt;
-		}
-		
-		swfobject.embedSWF(swf_url+"?time="+new Date().getTime(), "flashContent", "400", "225", "10.0.0", "swf/expressInstall.swf", flashVars, params, attributes);
-		
-		$(document).ready(function() {
-			$('#vimeo_id').val(flashVars.vimeoId);
-			$('#srt_url').val(flashVars.srtUrl);
-			$('#apply').click(function() {
-				var url = $(location).attr('href').split('?')[0];
-				url += '?id='+$('#vimeo_id').val();
-				url += '&srt='+$('#srt_url').val();
-				$(location).attr('href', url);
-			});
-			$('#clear').click(function() {
-				$(location).attr('href', $(location).attr('href').split('?')[0]);
-			});
-			$('input').keydown(function(event) {
-				if (event.keyCode == '13') {
-					$('#apply').click();
-				}
-			});
-		});
-		
-	</script>
-	
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>  
+	<script type="text/javascript" src="js/code_hilighter.js"></script>
+	<script type="text/javascript" src="js/code_hilighter_javascript.js"></script>
+	<script type="text/javascript" src="js/vimeosrt-example.js"></script>
 </head>
 <body> 
-	<h1>VimeoSrtPlayer AS3 Example</h1>
-	<div id="flashHolder">
-		<div id="flashContent">Flash and Javascript required</div>
-	</div>  
-	(current localized subtitles are from "The Lion King" files from opensubtitles.org, and they start at ~01:20)
-	<hr>
+	<div id="site">
+		<h1>VimeoSrtPlayer</h1>
+		 
+		<!-- player container -->
+		<p>
+			<div id="flashHolder">
+				<div id="flashContent">Flash and Javascript required</div>
+			</div>  
+			<div class="small">(current translated subtitles: "The Lion King", files from <a href="http://opensubtitles.org" target="_blank">opensubtitles.org</a>, first lines appear at ~01:20)</div>
+		</p> 
+		<ul class="quick-test">
+			<li>
+				<span>vimeo id:</span> 
+				<input id="vimeo_id" type="text">
+			</li>
+			<li>
+				<span>.srt url:</span> 
+				<input id="srt_url" type="text">
+			</li>
+			<li>
+				<button id="clear">Clear</button>
+				<button id="apply">Apply</button>
+			</li>
+		</ul> 
+		
+		<hr>
+		   
+		<h2>2011-02-25: JavaScript Goodies</h2>
+		<p> 
+			The player can now communicate via JavaScript. It can be controlled and JS can listen to events.<br>
+			Useful functions are available, for example a JSON object from the parsed srt file can be retireved using the parseSrt() function.
+			<br>
+			Open your browser console, use the player functions and observe the output.
+			
+			<h3>parseSrt()</h3>
+			The player now has a parseSrt() function available from javascript. It parses an srt file to a JSON object.<br>
+			You can call parseSrt() to get the currently loaded srt file, or you can pass an url and the name of a callback function to parse a completely different srt file.
+			<h4>Example</h4><pre><code class="javascript">// returns a string if no params are passed:
+console.log($('#VimeoSrtPlayer')[0].parseSrt());
+
+// if you pass params, we need async handling. pass an url and a handler function name (String!):
+var handleSrt = function(result) {
+	console.log('SRT: '+result)
+}
+$('#VimeoSrtPlayer')[0].parseSrt('srt/Dutch-the.lion.king.1994.dvdrip.xvid.int-jollyroger.srt', 'handleSrt')</code></pre>
+			
+			<h3>JS Event Handling</h3>
+			<h4>Usage</h4>
+			Define a <code>onPlayerEvent</code> function to listen to player events:
+			<pre><code class="javascript">function onPlayerEvent(type, event) {}</code></pre>
+			<h4>Event listing</h4>
+			
+			<ul class="events">
+				<li>
+					<div>name: moogaloopError</div>
+					<div>params: moogaloopUrl</div>
+					<div>description: When moogaloop.swf could not be loaded</div>
+				</li>
+				<li>
+					<div>name: moogaloopReady</div>
+					<div>params: duration, moogaloopUrl</div>
+					<div>description: When moogaloop player was loaded and the video is available (with its duration)</div>
+				</li>
+				<li>
+					<div>name: loadSrt</div>
+					<div>params: srtUrl</div>
+					<div>description: When srt file starts loading</div>
+				</li>
+				<li>
+					<div>name: srtLoaded</div>
+					<div>params: srtUrl</div>
+					<div>description: After srt file finished loading</div>
+				</li>
+				<li>
+					<div>name: srtError</div>
+					<div>params: srtUrl</div>
+					<div>description: When srt file failed loading</div>
+				</li>
+				<li>
+					<div>name: fullscreenChanged</div>
+					<div>params: fullscreen</div>
+					<div>description: When the fullscreen mode is enabled or disabled. Check the <code>fullscreen</code> param (Boolean)</div>
+				</li>
+				<li>
+					<div>name: loadLocalization</div>
+					<div>params: localizationUrl</div>
+					<div>description: When a localization XML file starts loading</div>
+				</li>
+				<li>
+					<div>name: localizationError</div>
+					<div>params: localizationUrl</div>
+					<div>description: When a localization XML file failed loading</div>
+				</li>
+				<li>
+					<div>name: localizationLoaded</div>
+					<div>params: localizationUrl</div>
+					<div>description: After a localization XML file finished loading</div>
+				</li>
+				<li>
+					<div>name: languageChanged</div>
+					<div>params: lang, langName</div>
+					<div>description: When the language was changed in the selectbox</div>
+				</li>
+				<li>
+					<div>name: volumeChanged</div>
+					<div>params: volume</div>
+					<div>description: When the volume was changed</div>
+				</li>
+				<li>
+					<div>name: play</div>
+					<div>params: position</div>
+					<div>description: When playback starts</div>
+				</li>
+				<li>
+					<div>name: pause</div>
+					<div>params: position</div>
+					<div>description: When playback is paused</div>
+				</li>
+				<li>
+					<div>name: seek</div>
+					<div>params: position</div> 
+					<div>description: When the user seeks to a new position in the video</div>
+				</li>
+				<li>
+					<div>name: subtitleText</div>
+					<div>params: text</div> 
+					<div>description: When the subtitle text / line changes</div>
+				</li>
+			</ul>
+			
+			<h4>Example:</h4>
+			<pre><code class="javascript">SrtEvent = {
+	MOOGALOOP_READY: 'moogaloopReady',
+	MOOGALOOP_ERROR: 'moogaloopError',
+	SRT_LOADED: 'srtLoaded',
+	SRT_ERROR: 'srtError',
+	LOAD_SRT: 'loadSrt',
+	FULLSCREEN_CHANGED: 'fullscreenChanged',
+	LOAD_LOCALIZATION: 'loadLocalization',
+	LOCALIZATION_ERROR: 'localizationError',
+	LOCALIZATION_LOADED: 'localizationLoaded',
+	LANGUAGE_CHANGED: 'languageChanged',
+	VOLUME_CHANGED: 'volumeChanged',
+	PLAY: 'play',
+	PAUSE: 'pause',
+	SEEK: 'seek',
+	SUBTITLE_TEXT: 'subtitleText'
+};
+
+function onPlayerEvent(type, event) {
+	switch (type) {
+		case SrtEvent.MOOGALOOP_READY: 
+			console.log('moogaloop ready, video duration: '+event.duration+'s, url: '+event.moogaloopUrl);
+			break;
+		case SrtEvent.LOAD_SRT:
+			console.log('load srt file: '+event.srtUrl);
+			break;
+		case SrtEvent.SRT_LOADED:
+			console.log('srt loaded, url: '+event.srtUrl);
+			break;
+		case SrtEvent.SRT_ERROR:
+			console.log('srt failed, url: '+event.srtUrl);
+			break;
+		case SrtEvent.FULLSCREEN_CHANGED:
+			console.log('fullscreen changed, fullscreen: '+event.fullscreen);
+			break;
+		case SrtEvent.LOAD_LOCALIZATION:
+			console.log('load localization file, url: '+event.localizationUrl);
+			break;
+		case SrtEvent.LOCALIZATION_LOADED:
+			console.log('localization file loaded, url: '+event.localizationUrl);
+			break;
+		case SrtEvent.LOAD_LOCALIZATION:
+			console.log('localization file failed, url: '+event.localizationUrl);
+			break;
+		case SrtEvent.LANGUAGE_CHANGED:
+			console.log('language changed, language: '+event.langName+' ('+event.lang+')');
+			break;
+		case SrtEvent.VOLUME_CHANGED:
+			console.log('volume changed, volume: '+event.volume);
+			break;
+		case SrtEvent.PLAY:
+			console.log('play, position: '+event.position);
+			break;
+		case SrtEvent.PAUSE:
+			console.log('pause, position: '+event.position);
+			break;
+		case SrtEvent.SEEK:
+			console.log('seek, new position: '+event.position);
+			break;
+		case SrtEvent.SUBTITLE_TEXT:
+			console.log('new subtitle text: '+event.text);
+			break;
+	}
+}
+ 
+</code></pre>
 	 
-	<h2>New: Multi-language support</h2>
-	<p>
-		<label>2011-02-24</label><br>
-		See <a href="srt/subtitles.xml" target="_blank">subtitles.xml</a> file.
-	</p>
-	<hr>
-	<h3>Quick test</h3>
-	<ul>
-		<li>
-			<span>vimeo id:</span> 
-			<input id="vimeo_id" type="text">
-		</li>
-		<li>
-			<span>.srt url:</span> 
-			<input id="srt_url" type="text">
-		</li>
-		<li>
-			<button id="clear">Clear</button>
-			<button id="apply">Apply</button>
-		</li>
-	</ul>
-	<hr>
-	Source: <a href="http://code.google.com/p/vimeosrtplayer/" target="_blank">http://code.google.com/p/vimeosrtplayer/</a>
+		
+		<hr>
+		 
+		<h2>2011-02-24: Multi-language support</h2>
+		<p> 
+			A menu is displayed above the play button if a "localization" paramter is specified.<br>
+			The languages are defined in a XML file (see <a href="srt/subtitles.xml" target="_blank">subtitles.xml</a>).		 
+		</p>
+		
+		<hr>
+		Source: <a href="http://code.google.com/p/vimeosrtplayer/" target="_blank">http://code.google.com/p/vimeosrtplayer/</a>
+	</div>
 </body>
 </html>
