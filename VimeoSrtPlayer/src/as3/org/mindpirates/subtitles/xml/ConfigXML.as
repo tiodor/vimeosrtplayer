@@ -12,9 +12,13 @@ package org.mindpirates.subtitles.xml
 		{ 
 			_data = info.parameters;
 		}
-		public function get url():String
+		public function get srt():String
 		{
 			return _data.srt;
+		}
+		public function get playerId():String
+		{
+			return _data.playerId;
 		}
 		public function get fontSize():Number
 		{ 
