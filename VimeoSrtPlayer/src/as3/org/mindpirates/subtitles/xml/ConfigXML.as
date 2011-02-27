@@ -16,9 +16,9 @@ package org.mindpirates.subtitles.xml
 		{
 			return _data.srt;
 		}
-		public function get playerId():String
+		public function get swfId():String
 		{
-			return _data.playerId;
+			return _data.swfId;
 		}
 		public function get fontSize():Number
 		{ 

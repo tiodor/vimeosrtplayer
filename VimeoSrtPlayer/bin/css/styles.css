@@ -94,3 +94,26 @@ pre {
 .javascript .brackets {
 	color : navy;
 }
+
+
+/*
+example editor
+*/
+#btn-create-editor, #btn-destroy-editor {
+	display:block;
+	text-decoration: underline;
+	cursor: pointer;
+	margin-bottom:20px;
+}
+#btn-destroy-editor {
+	display:none
+}
+table {width: 100%}
+/* datatables fixes */
+.css_right {float: right!important;}
+/* uitableedit fixes */
+td {cursor:default}
+td.editable {cursor:text}
+table form {margin: 0;}
+table input, table {font-size: medium;}
+td.show {width: 100px; text-align: center}

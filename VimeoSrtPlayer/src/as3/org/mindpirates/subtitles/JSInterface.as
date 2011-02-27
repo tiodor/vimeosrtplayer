@@ -4,6 +4,8 @@ package org.mindpirates.subtitles
 	
 	import flash.external.ExternalInterface;
 	
+	import nl.inlet42.data.subtitles.SubtitleLine;
+	
 	import org.osflash.thunderbolt.Logger;
 
 	public class JSInterface
@@ -22,7 +24,15 @@ package org.mindpirates.subtitles
 			ExternalInterface.addCallback('changeLine', changeLine);
 			ExternalInterface.addCallback('play', player.player.play);
 			ExternalInterface.addCallback('pause', player.player.pause);
+			ExternalInterface.addCallback('seekTo', player.player.seekTo);
+			ExternalInterface.addCallback('addListener', addExternalListener);
+			Logger.info('srtPlayer.config.swfId: '+srtPlayer.config.swfId);
+			ExternalInterface.call('onSubtitleApiReady', srtPlayer.config.swfId);
 		} 
+		public function addExternalListener(type:String, handler:*):void
+		{
+			Logger.info('type: '+type+', handler: '+handler);
+		}
 		private function loadSrt(file:String):void
 		{
 			player.subtitles.loadSrt(file);
@@ -32,8 +42,8 @@ package org.mindpirates.subtitles
 			return player.subtitles.parseSrt(file, callback);
 		} 
 		private function changeLine(oldLine:Object, newLine:Object):void
-		{
-		
+		{ 
+			player.subtitles.changeLine(SubtitleLine.create(oldLine), SubtitleLine.create(newLine));
 		}
 		public function fireEvent(event:JsEvent):void
 		{

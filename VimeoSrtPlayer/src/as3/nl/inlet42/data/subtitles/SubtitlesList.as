@@ -15,9 +15,11 @@ package nl.inlet42.data.subtitles
 	{
 		private var _data:Array;
 		private var start_positions:Array;
-		public function SubtitlesList(data:Array)
-		{
+		public var url:String;
+		public function SubtitlesList(data:Array, src:String)
+		{ 
 			_data = data; 
+			url = src;
 		} 
 		public function get list():Array
 		{
@@ -37,7 +39,10 @@ package nl.inlet42.data.subtitles
 		}
 		public function toJson():String
 		{
-			var lines:Array = [];
+			var result:Object = {
+				src: url,
+				lines: []
+			} 
 			for (var i:int=0,t:int=_data.length; i<t; i++) 
 			{
 				var line:SubtitleLine = _data[i];
@@ -46,9 +51,15 @@ package nl.inlet42.data.subtitles
 					start: line.start,
 					end: line.end
 				}
-				lines.push( JSON.encode(resultObj) );  
+				result.lines.push( resultObj );  
 			}
-			return '{"lines":[' + lines.join(',') + ']}';	
+			
+			return JSON.encode( result );	
+		}
+		
+		public function replaceLine(oldLine:SubtitleLine, newline:SubtitleLine):void
+		{
+			
 		}
 	}
 }

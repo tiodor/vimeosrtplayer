@@ -23,6 +23,7 @@ package org.mindpirates.subtitles
 	[SWF(width="450", height="225")]
 	public class VimeoSrtPlayer extends Sprite
 	{  
+		public var config:ConfigXML;
 		public var player:VimeoPlayer;  
 		public var subtitles:SubtitlesLayer;
 		public var js:JSInterface;
@@ -30,6 +31,7 @@ package org.mindpirates.subtitles
 		public function VimeoSrtPlayer()
 		{ 		
 			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);
+			config =  new ConfigXML(loaderInfo);
 		}
 		
 		private function handleAddedToStage(e:Event):void
@@ -45,7 +47,7 @@ package org.mindpirates.subtitles
 		private function handlePlayerLoaded(e:Event):void
 		{       
 			subtitles = new SubtitlesLayer(player);
-			subtitles.init( new ConfigXML(loaderInfo) );
+			subtitles.init( config );
 			addChild(subtitles);
 			js.initCallbacks(this);
 		}  
