@@ -1,4 +1,7 @@
 package nl.inlet42.data.subtitles { 
+	import com.chewtinfoil.utils.StringUtils;
+	
+	import org.osflash.thunderbolt.Logger;
 	
 	/**
 	 *	@author Jovica Aleksic
@@ -9,6 +12,19 @@ package nl.inlet42.data.subtitles {
 		private var _start : Number;
 		private var _duration : Number;
 		private var _end : Number;
+		
+		public static function create(obj:Object):SubtitleLine
+		{
+			var duration:Number = obj.duration || (SubtitleParser.stringToSeconds( obj.end ) - SubtitleParser.stringToSeconds( obj.start ))
+			return new SubtitleLine(obj.text, obj.start, duration, obj.end); 
+		}
+		
+		public static function match(a:SubtitleLine, b:SubtitleLine):Boolean
+		{ 
+			return a.start == b.start && 
+				a.end == b.end && 
+				StringUtils.removeExtraWhitespace(a.text) == StringUtils.removeExtraWhitespace(b.text); ;
+		}
 		
 		public function SubtitleLine(inText : String = "",inStart : Number = 0,inDuration : Number = 0,inEnd : Number = 0) {
 			text = inText;
@@ -70,5 +86,13 @@ package nl.inlet42.data.subtitles {
 			var factor:Number = Math.pow(10,nrOfDigits); 
 			return Math.round(num*factor)/factor; 
 		} 
+		
+		public function apply(source:SubtitleLine):void
+		{
+			start = source.start;
+			end = source.end;
+			duration = source.duration;
+			text = source.text;
+		}
 	}
 }

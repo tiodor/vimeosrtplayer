@@ -1,13 +1,16 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>VimeoSrtPlayer</title>
-	<link rel="stylesheet" type="text/css" href="css/styles.css"> 
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>  
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>  
+	<link rel="stylesheet" type="text/css" href="css/styles.css">  
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>   
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js"></script>   
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>  
 	<script type="text/javascript" src="js/code_hilighter.js"></script>
 	<script type="text/javascript" src="js/code_hilighter_javascript.js"></script>
-	<script type="text/javascript" src="js/vimeosrt-example.js"></script>
+	 
+	<script type="text/javascript" src="js/srt-main.js"></script>
 </head>
 <body> 
 	<div id="site">
@@ -37,12 +40,23 @@
 		
 		<hr>
 		   
+		   
+		<h2>2011-02-27: Demo - SRT Editor Display</h2>
+		<p>
+			This is a quick proof-of-concept about implementation with an srt editor.<br>
+			Change the displayed subtitles using a HTML table and JavaScript.
+			The subtitles currently loaded in the player above will be edited - if you change the language, you will need to close and restart the editor.<br><br><br>
+			<a id="btn-destroy-editor">Close example editor</a> 
+			<a id="btn-create-editor">Create example editor</a> 
+		</p>
+		<hr>
 		<h2>2011-02-25: JavaScript Goodies</h2>
 		<p> 
 			The player can now communicate via JavaScript. It can be controlled and JS can listen to events.<br>
 			Useful functions are available, for example a JSON object from the parsed srt file can be retireved using the parseSrt() function.
 			<br>
-			Open your browser console, use the player functions and observe the output.
+			<a href="javascript:(function(){$.getScript('js/srt-logging.js')})()">Enable logging</a>, open your browser console, use player functions like pause, play, seek etc, and observe the output.
+			
 			
 			<h3>parseSrt()</h3>
 			The player now has a parseSrt() function available from javascript. It parses an srt file to a JSON object.<br>

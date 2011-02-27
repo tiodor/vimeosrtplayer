@@ -306,7 +306,8 @@ package de.derhess.video.vimeo {
 		}
 		private function handleVolumeMouseMove(e:MouseEvent):void
 		{ 
-			var r:Number = e.localX / ui.volume.width; 
+			var r:Number = e.localX / ui.volume.width;
+			
 			setVolume(r*100);
 		} 
 		private function handleUIMouseUp(e:MouseEvent):void
@@ -479,7 +480,7 @@ package de.derhess.video.vimeo {
 				e.currentTime = getCurrentVideoTime();
 				e.duration = 0;
 				e.info = VimeoPlayingState.PLAYING;
-				dispatchEvent(e);
+				dispatchEvent(e); 
 				
 			}
 			if (js) {
@@ -508,7 +509,7 @@ package de.derhess.video.vimeo {
 		/**
 		 * Seek to specific loaded time in video (in seconds)
 		 */
-		public function seekTo(time:int):void {
+		public function seekTo(time:Number):void {
 			Logger.info('seekTo('+time+')')
 			moogaloop.api_seekTo(time);
 			

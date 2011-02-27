@@ -110,15 +110,16 @@ package org.mindpirates.subtitles
 			}
 		} 
 		
-		
+		private var forceTextRefresh:Boolean;
 		private function handleTimer(e:Event):void
 		{       
 			// update text
 			var line:SubtitleLine = list.getLineAtTime( player.getCurrentVideoTime() )  
 			if (line) { 
-				if (line != currentSubtitleLine) {
+				if (line != currentSubtitleLine || forceTextRefresh) {
 					currentSubtitleLine = line;
 					text = line.text;
+					forceTextRefresh = false;
 				}
 			}
 			else if (currentSubtitleLine) { 
@@ -368,7 +369,7 @@ package org.mindpirates.subtitles
 		private function handleSrtLoaded(e:Event):void
 		{ 
 			var lines:Array = SubtitleParser.parseSRT( e.target.data.toString() );
-			list = new SubtitlesList(lines);			
+			list = new SubtitlesList(lines, currentSrtUrl);			
 			timer.start(); 			
 			dispatchEvent( new Event( Event.COMPLETE ) ); 
 			
@@ -379,25 +380,35 @@ package org.mindpirates.subtitles
 			}
 		}
 		
-		
-		
-		
+		 
 		public function changeLine(oldLine:SubtitleLine, newLine:SubtitleLine):void
 		{
-			
+			Logger.info('-------------------- CHANGE LINE -----------------------------');
+			for each (var line:SubtitleLine in list.list) {
+				if (SubtitleLine.match(oldLine, line)) {/*
+					Logger.info('------------------------------------------------------------');
+					Logger.info('\nCHANGE LINE:'); 
+					Logger.info('\nold line: ',oldLine);
+					Logger.info('\nnew line: ',newLine); */
+					line.apply(newLine);
+					forceTextRefresh = true;
+				}
+			}
 		}
 		
 		public function parseSrt(file:String=null, jsHandler:String=null):String
 		{
-			var result:String;
+			var result:String = "";
 			if (!file) {
-				result = list.toJson();
+				if (list) {
+					result = list.toJson();
+				}
 			}
 			else { 
 				var loaded:Function = function(e:Event):void {
 					var lines:Array = SubtitleParser.parseSRT( e.target.data.toString() );  
-					if (jsHandler && ExternalInterface.available) {
-						var _list:SubtitlesList = new SubtitlesList(lines); 
+					if (jsHandler && ExternalInterface.available) { 
+						var _list:SubtitlesList = new SubtitlesList(lines, file); 
 						var _result:String = _list.toJson(); 
 						ExternalInterface.call(jsHandler, _result);
 					}
