@@ -48,5 +48,12 @@ package org.mindpirates.subtitles.xml
 			}
 			return String(_data.lang);
 		}
+		public function get queryParamString():String
+		{
+			if (!_data.queryParams) {
+				return null;
+			}
+			return String(_data.queryParams);
+		} 
 	}
 }
