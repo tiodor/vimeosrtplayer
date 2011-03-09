@@ -55,5 +55,12 @@ package org.mindpirates.subtitles.xml
 			}
 			return String(_data.queryParams);
 		} 
+		public function get dynpos():Boolean
+		{
+			if (!_data.dynpos) {
+				return true;
+			}
+			return _data.dynpos == 'true' || _data.dynpos == '1';
+		} 
 	}
 }
