@@ -11,6 +11,7 @@ package org.mindpirates.subtitles
 		public static const LOAD_LOCALIZATION:String = "loadLocalization";
 		public static const LOCALIZATION_ERROR:String = "localizationError";
 		public static const LOCALIZATION_LOADED:String = "localizationLoaded";
+		public static const LANGUAGE_MENU_CREATED:String = "languageMenuCreated";
 		public static const LANGUAGE_CHANGED:String = "languageChanged";
 		public static const VOLUME_CHANGED:String = "volumeChanged";
 		public static const PLAY:String = "play";

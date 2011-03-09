@@ -13,6 +13,13 @@ package nl.inlet42.data.subtitles {
 		private var _duration : Number;
 		private var _end : Number;
 		
+		public function SubtitleLine(inText : String = "",inStart : Number = 0,inDuration : Number = 0,inEnd : Number = 0) {
+			text = inText;
+			start = inStart;
+			duration = inDuration;
+			end = inEnd;
+		}
+		
 		public static function create(obj:Object):SubtitleLine
 		{
 			var duration:Number = obj.duration || (SubtitleParser.stringToSeconds( obj.end ) - SubtitleParser.stringToSeconds( obj.start ))
@@ -20,17 +27,10 @@ package nl.inlet42.data.subtitles {
 		}
 		
 		public static function match(a:SubtitleLine, b:SubtitleLine):Boolean
-		{ 
+		{  
 			return a.start == b.start && 
 				a.end == b.end && 
 				StringUtils.removeExtraWhitespace(a.text) == StringUtils.removeExtraWhitespace(b.text); ;
-		}
-		
-		public function SubtitleLine(inText : String = "",inStart : Number = 0,inDuration : Number = 0,inEnd : Number = 0) {
-			text = inText;
-			start = inStart;
-			duration = inDuration;
-			end = inEnd;
 		}
 		
 		
@@ -84,7 +84,8 @@ package nl.inlet42.data.subtitles {
 		private function roundToDigit(num:Number, nrOfDigits:Number):Number 
 		{ 		 
 			var factor:Number = Math.pow(10,nrOfDigits); 
-			return Math.round(num*factor)/factor; 
+			var result:Number = Math.round(num*factor)/factor; 
+			return result; 
 		} 
 		
 		public function apply(source:SubtitleLine):void

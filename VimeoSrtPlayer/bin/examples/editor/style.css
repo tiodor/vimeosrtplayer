@@ -1,0 +1,13 @@
+#flashHolder {
+	width: 450px;
+	height: 225px;
+	margin: 0 auto;
+}
+
+.css_right {float: right!important;}
+#srt-lines_wrapper { 
+	width: 800px; 
+}
+table {width: 800px}
+
+#fancybox-content > div {overflow: hidden!important;}

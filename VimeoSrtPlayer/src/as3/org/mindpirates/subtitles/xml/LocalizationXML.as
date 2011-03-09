@@ -1,5 +1,6 @@
 package org.mindpirates.subtitles.xml
 { 
+	import org.osflash.thunderbolt.Logger;
 	 
 	public class LocalizationXML extends XMLProxy
 	{
@@ -24,6 +25,15 @@ package org.mindpirates.subtitles.xml
 				result.push( prop.toString() ); 
 			}
 			return result;
+		}
+		public function getLangByFile(file:String):String
+		{
+			for each (var srt:XML in data.srt) {
+				if (srt.toString() == file) {
+					return srt.@lang;
+				}
+			}
+			return null;
 		}
 		public function getFileByLang(lang:String):String
 		{

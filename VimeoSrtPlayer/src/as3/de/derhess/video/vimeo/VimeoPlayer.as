@@ -302,6 +302,7 @@ package de.derhess.video.vimeo {
 				setVolume(r*100);
 				isVolumeDragging = true;
 				ui.volume.addEventListener(MouseEvent.MOUSE_MOVE, handleVolumeMouseMove, false, 0, true); 
+				ui.playbar.addEventListener(MouseEvent.MOUSE_MOVE, handlePlaybarMouseMove, false, 0, true);
 			}	
 		}
 		private function handleVolumeMouseMove(e:MouseEvent):void
@@ -310,9 +311,21 @@ package de.derhess.video.vimeo {
 			
 			setVolume(r*100);
 		} 
+		private function handlePlaybarMouseMove(e:MouseEvent):void
+		{
+			if (e.stageY > ui.volume.y && e.stageY < (ui.volume.y + ui.volume.height) ) {
+				if (e.stageX < ui.volume.x) {
+					setVolume(0)
+				}
+				if (e.stageX > ui.volume.x + ui.volume.width) {
+					setVolume(100);
+				}
+			} 
+		}
 		private function handleUIMouseUp(e:MouseEvent):void
 		{
 			if (isVolumeDragging) {
+				ui.playbar.removeEventListener(MouseEvent.MOUSE_MOVE, handlePlaybarMouseMove);
 				ui.volume.removeEventListener(MouseEvent.MOUSE_MOVE, handleVolumeMouseMove);
 				ui.volume.removeEventListener(MouseEvent.MOUSE_UP, handleVolumeMouseMove);
 			}

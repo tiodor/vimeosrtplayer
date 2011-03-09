@@ -172,7 +172,7 @@ package org.mindpirates.subtitles
 		 
 		private function updateTextPosition():void
 		{  
-			var margin:Number = config.margin * currentScale + (player.ui.playbar.alpha ? player.ui.playButton.height : 0)
+			var margin:Number = config.margin * currentScale; // + (player.ui.playbar.alpha ? player.ui.playButton.height : 0)
 			textField.y = player.player_height - textField.textHeight*currentScale - margin; 
 			
 		}
@@ -185,9 +185,16 @@ package org.mindpirates.subtitles
 		//-------------------------------------------------------------------------------------------
  
 		public function setLanguage(lang:String):void
-		{
-			var file:String = localization.getFileByLang(lang);
+		{ 
+			var file:String = localization.getFileByLang(lang); 
 			loadSrt(file);
+			setComboLanguage(lang);
+		}
+		public function setComboLanguage(lang:String):void
+		{			
+			if (!combo) {
+				return;
+			}
 			for (var i:int=0,t:int=combo.dataProvider.length; i<t; i++) {
 				var item:Object = combo.dataProvider.getItemAt(i);
 				if (item.lang == lang) {
@@ -218,7 +225,10 @@ package org.mindpirates.subtitles
 		{   
 			createCombo();
 			updateComboPosition(); 
-			if (localization.defaultLang) {
+			
+			if (config.lang) {
+				setLanguage(config.lang);
+			} else if (localization.defaultLang) {
 				setLanguage(localization.defaultLang);
 			}
 			
@@ -281,6 +291,29 @@ package org.mindpirates.subtitles
 			combo.dataProvider = new DataProvider(dp);
 			player.ui.playbar.addChild(combo);
 			
+			if (player.js) {
+				var event:JsEvent = new JsEvent(JsEvent.LANGUAGE_MENU_CREATED); 
+				player.js.fireEvent(event);
+			}
+			
+		}  
+		public function disableCombo():void
+		{
+			if (!combo) {
+				return;
+			}
+			combo.mouseEnabled = false;
+			combo.mouseChildren = false;
+			combo.alpha = 0.7;
+		}
+		public function enableCombo():void
+		{
+			if (!combo) {
+				return;
+			}
+			combo.mouseEnabled = true;
+			combo.mouseChildren = true;
+			combo.alpha = 1;
 		}
 		private function handleComboChange(e:Event):void
 		{  
@@ -378,6 +411,10 @@ package org.mindpirates.subtitles
 				event.srtUrl = currentSrtUrl;
 				player.js.fireEvent(event);
 			}
+			
+			if (combo) {
+				setComboLanguage( localization.getLangByFile( currentSrtUrl) );
+			}
 		}
 		
 		 
@@ -385,11 +422,11 @@ package org.mindpirates.subtitles
 		{
 			Logger.info('-------------------- CHANGE LINE -----------------------------');
 			for each (var line:SubtitleLine in list.list) {
-				if (SubtitleLine.match(oldLine, line)) {/*
+				if (SubtitleLine.match(oldLine, line)) { 
 					Logger.info('------------------------------------------------------------');
 					Logger.info('\nCHANGE LINE:'); 
 					Logger.info('\nold line: ',oldLine);
-					Logger.info('\nnew line: ',newLine); */
+					Logger.info('\nnew line: ',newLine);  
 					line.apply(newLine);
 					forceTextRefresh = true;
 				}
