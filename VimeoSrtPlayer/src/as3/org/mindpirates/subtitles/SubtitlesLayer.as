@@ -172,7 +172,7 @@ package org.mindpirates.subtitles
 		 
 		private function updateTextPosition():void
 		{  
-			var margin:Number = config.margin * currentScale; // + (player.ui.playbar.alpha ? player.ui.playButton.height : 0)
+			var margin:Number = config.margin * currentScale + (config.dynpos ? (player.ui.playbar.alpha ? player.ui.playButton.height : 0) : 0);
 			textField.y = player.player_height - textField.textHeight*currentScale - margin; 
 			
 		}
