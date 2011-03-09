@@ -24,6 +24,7 @@ package de.derhess.video.vimeo {
 	import org.mindpirates.subtitles.JSInterface;
 	import org.mindpirates.subtitles.JsEvent;
 	import org.mindpirates.subtitles.VimeoSrtPlayer;
+	import org.mindpirates.subtitles.xml.ConfigXML;
 	import org.osflash.thunderbolt.Logger;
 	 
 	 
@@ -145,8 +146,8 @@ package de.derhess.video.vimeo {
 			loaderParams = info.parameters;
 			clip_id = loaderParams['vimeoId'];
 			Security.allowDomain("*");
-			Security.loadPolicyFile("http://vimeo.com/moogaloop/crossdomain.xml");
-			url = MOOGALOOP_URL + "?clip_id="+clip_id + "&width=" + w + "&height=" + h + "&fullscreen=1";
+			Security.loadPolicyFile("http://vimeo.com/moogaloop/crossdomain.xml"); 
+			url = MOOGALOOP_URL + "?clip_id="+clip_id + "&width=" + w + "&height=" + h + "&fullscreen=1" + (loaderParams.queryParams ? '&'+loaderParams.queryParams : '');
  
 			loader = new Loader(); 
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
