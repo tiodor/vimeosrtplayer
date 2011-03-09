@@ -41,5 +41,12 @@ package org.mindpirates.subtitles.xml
 			}
 			return String(_data.localization);
 		}
+		public function get lang():String
+		{
+			if (!_data.lang) {
+				return null;
+			}
+			return String(_data.lang);
+		}
 	}
 }

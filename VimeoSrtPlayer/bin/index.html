@@ -9,8 +9,10 @@
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>  
 	<script type="text/javascript" src="js/code_hilighter.js"></script>
 	<script type="text/javascript" src="js/code_hilighter_javascript.js"></script>
-	 
+	<script type="text/javascript" src="js/utils.js"></script>
+	  
 	<script type="text/javascript" src="js/srt-main.js"></script>
+	<script type="text/javascript" src="js/srt-api.js"></script>
 </head>
 <body> 
 	<div id="site">
@@ -39,17 +41,46 @@
 		</ul> 
 		
 		<hr>
-		   
+		     
+		<h2>2011-02-28: JS Event API</h2>
+		<p>
+			There is now a rudimental <a href="js/srt-api.js" target="_blank">event api in javascript</a>.<br>
+			Once the API is loaded and available, you can handle events generated in the player.<br>
+			However, since the API must be available first, you have to use the <code>srtApiReady()</code> function.<br>
+			Of course if you know that the api is already loaded, you can call it's functions directly. 
+			<pre><code class="javascript">   
+var registerEvents = function() {
+	var onPlay = function(e, swf_id) {
+		console.log('event "'+e.type+'" received from '+swf_id+', position: '+e.position);  
+	}
+	var onSeek = function(e, swf_id) {
+		console.log('event "'+e.type+'" received from '+swf_id+', position: '+e.position);  
+	}
+	srtapi.addListener($('#VimeoSrtPlayer'), 'play', onPlay);
+	srtapi.addListener($('#VimeoSrtPlayer'), 'seek', onSeek);
+}
+if (srtapi) { 
+	registerEvents(); 
+} 
+else {
+	window.srtApiReady = function() {
+		registerEvents();	
+	}
+} 
+			</code></pre>
+		</p>
+		<hr>
+		 
 		   
 		<h2>2011-02-27: Demo - SRT Editor Display</h2>
 		<p>
 			This is a quick proof-of-concept about implementation with an srt editor.<br>
 			Change the displayed subtitles using a HTML table and JavaScript.
 			The subtitles currently loaded in the player above will be edited - if you change the language, you will need to close and restart the editor.<br><br><br>
-			<a id="btn-destroy-editor">Close example editor</a> 
-			<a id="btn-create-editor">Create example editor</a> 
+			<a href="examples/editor">SRT EDITOR EXAMPLE</a>  
 		</p>
 		<hr>
+		
 		<h2>2011-02-25: JavaScript Goodies</h2>
 		<p> 
 			The player can now communicate via JavaScript. It can be controlled and JS can listen to events.<br>
