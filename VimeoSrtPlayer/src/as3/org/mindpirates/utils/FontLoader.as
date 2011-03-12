@@ -11,7 +11,7 @@ package org.mindpirates.utils
 	public class FontLoader extends Sprite {
 		
 		public function FontLoader() {
-			graphics.beginFill(0xff0000,1)
+			graphics.beginFill(0xff0000,0)
 				graphics.drawRect(0,0,100,100);
 				graphics.endFill();
 			//loadFont("_Arial.swf");
