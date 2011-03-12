@@ -1,0 +1,8 @@
+<?xml version="1.0"?> 
+<subtitles defaultLang="eng">
+	<srt lang="cze">http://localhost/mindpirates-flash/VimeoSrtPlayer/bin/srt/0803_problema_cze_complete.srt</srt>
+	<srt lang="dut">http://localhost/mindpirates-flash/VimeoSrtPlayer/bin/srt/0803_problema_dut_complete.srt</srt>
+	<srt lang="est">http://localhost/mindpirates-flash/VimeoSrtPlayer/bin/srt/0803_problema_est_complete.srt</srt>  
+	<srt lang="rus">http://localhost/mindpirates-flash/VimeoSrtPlayer/bin/srt/0803_problema_rus_complete.srt</srt>  
+	<srt lang="eng">http://localhost/mindpirates-flash/VimeoSrtPlayer/bin/srt/0803_problema_eng_complete.srt</srt>  
+</subtitles>

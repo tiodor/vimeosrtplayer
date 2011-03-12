@@ -18,11 +18,13 @@ package de.derhess.video.vimeo {
 	import flash.system.ApplicationDomain;
 	import flash.system.LoaderContext;
 	import flash.system.Security;
+	import flash.system.SecurityDomain;
 	import flash.utils.Timer;
 	import flash.utils.getDefinitionByName;
 	
 	import org.mindpirates.subtitles.JSInterface;
 	import org.mindpirates.subtitles.JsEvent;
+	import org.mindpirates.subtitles.VimeoAuth;
 	import org.mindpirates.subtitles.VimeoSrtPlayer;
 	import org.mindpirates.subtitles.xml.ConfigXML;
 	import org.osflash.thunderbolt.Logger;
@@ -86,7 +88,7 @@ package de.derhess.video.vimeo {
 		public var overlay:Sprite;
 		
 		 
-		public var embedSettings:XMLList;
+		//public var embedSettings:XMLList;
 		
 		private var container:Sprite = new Sprite(); // sprite that holds the player
 		public var moogaloop:Object = false; // the player
@@ -147,7 +149,7 @@ package de.derhess.video.vimeo {
 			clip_id = loaderParams['vimeoId'];
 			Security.allowDomain("*");
 			Security.loadPolicyFile("http://vimeo.com/moogaloop/crossdomain.xml"); 
-			url = MOOGALOOP_URL + "?clip_id="+clip_id + "&width=" + w + "&height=" + h + "&fullscreen=1" + (loaderParams.queryParams ? '&'+loaderParams.queryParams : '');
+			url = MOOGALOOP_URL + "?fp_version=9&oauth_key="+VimeoAuth.CONSUMER_KEY+"&clip_id="+clip_id + "&width=" + w + "&height=" + h + "&fullscreen=1" + (loaderParams.queryParams ? '&'+loaderParams.queryParams : '');
  
 			loader = new Loader(); 
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
@@ -331,6 +333,9 @@ package de.derhess.video.vimeo {
 				ui.volume.removeEventListener(MouseEvent.MOUSE_UP, handleVolumeMouseMove);
 			}
 		}
+		public function clickOnFullscreenButton(e:Event):Boolean {
+			return e.target.parent.toString() == '[object FullscreenButton]';
+		}
 		
 		/**
 		 * Prevents some default events that would lead to an error and calls api functions instead.
@@ -345,8 +350,9 @@ package de.derhess.video.vimeo {
 			}
 			var clickOnPlayButton:Function = function(e:Event):Boolean {
 				return e.target.parent == ui.playButton;
-			}	
-				
+			}	 
+		 
+			//Logger.info('target: '+e.target.parent)
 			switch (e.target) {
 				case ui.fullscreen_button:
 					toggleFullscreen();
@@ -359,6 +365,7 @@ package de.derhess.video.vimeo {
 					}
 					break;
 			}
+			 
 		}
 		
 		private function handleSeek(e:Event):void
@@ -389,6 +396,7 @@ package de.derhess.video.vimeo {
 			if (value == _fullscreen) {
 				return;
 			} 
+			//Logger.info('fullscreen', value);
 			stage.displayState = value ? StageDisplayState.FULL_SCREEN : StageDisplayState.NORMAL;  
 			_fullscreen = value;
 		}
@@ -572,7 +580,12 @@ package de.derhess.video.vimeo {
 		 */
 		public function setSize(w:int, h:int):void { 
 			this.setDimensions(w, h);
+			Logger.info('setSize('+w+', '+h+')');
 			moogaloop.api_setSize(w, h);
+			Logger.info('moogaloop: '+moogaloop);
+			Logger.info('moogaloop.api_setSize: '+moogaloop.api_setSize);
+			
+			Logger.info('moogaloop size', moogaloop.width, moogaloop.height)
 			this.redrawMask();
 		}
 		
@@ -699,10 +712,10 @@ package de.derhess.video.vimeo {
 		
 		private function onComplete(e:Event):void 
 		{ 
+			//Logger.info('onComplete', e);
 			// Finished loading moogaloop
 			container.addChild(e.target.loader.content);
 			moogaloop = e.target.loader.content;
-			
 				
 			// Create the mask for moogaloop
 			addChild(player_mask);
@@ -734,7 +747,7 @@ package de.derhess.video.vimeo {
 				//
 				
 				//Defaultvars.getInstance().vars.embed_settings.color   
-				embedSettings = defaultVars.vars.embed_settings; 
+				//embedSettings = defaultVars.vars.embed_settings; 
 				
 				// set references to moogaloop UI elements
 				ui = new VimeoPlayerUI(this); 
@@ -742,7 +755,7 @@ package de.derhess.video.vimeo {
 				video = video_manager.getChildAt(0).getChildAt(0);
 				overlay = video_manager.getChildAt(0).getChildAt(1);
 				moogaloop.api_enableHDEmbed(); 
-				
+//				setSize(player_width, player_height);
 
 				enableSeekEvents();
 					
@@ -758,16 +771,19 @@ package de.derhess.video.vimeo {
 				vimeoEvent.info = "";
 				dispatchEvent(vimeoEvent);
 				
- 
+ 				Logger.info('lets go')
 				
 			}
 		}
 		
+		//deprecated: can't access moogaloop applicationDomain anymore..?
+		/*
 		public function get defaultVars():Object
 		{
+			//Logger.info('get defaultVars', loader.contentLoaderInfo.applicationDomain)
 			return loader.contentLoaderInfo.applicationDomain.getDefinition("com.as3.classes::DefaultVars").getInstance();
 		}
-		
+		 */
 		/**
 		 * dispatch Event for the VideoStatus
 		 * @param	e

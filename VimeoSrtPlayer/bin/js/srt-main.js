@@ -10,7 +10,7 @@ var defaultLocalization = "srt/subtitles.xml?time="+new Date().getTime();
 
 var swf_container_id = 'flashContent';
 var swf_id = 'VimeoSrtPlayer';
-var swf_url = 'swf/VimeoSrtPlayer.swf?time='+new Date().getTime();
+var swf_url = 'swf/VimeoSrtPlayer.swf?time='+new Date().getTime()+'&show_portrait=0';
 
 var srtPlayer = null;	 
 var vimeo_id = _GET('id') || defaultVimeoId;
