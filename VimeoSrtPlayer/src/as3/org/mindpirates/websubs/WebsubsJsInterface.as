@@ -1,6 +1,5 @@
-package org.mindpirates.subtitles
-{
-	import de.derhess.video.vimeo.VimeoPlayer;
+package org.mindpirates.websubs
+{ 
 	
 	import flash.external.ExternalInterface;
 	import flash.text.TextFormat;
@@ -9,12 +8,12 @@ package org.mindpirates.subtitles
 	
 	import org.osflash.thunderbolt.Logger;
 
-	public class JSInterface
+	public class WebsubsJsInterface
 	{
 		
 		private var player:VimeoSrtPlayer;
 		private var jsApiReady:Boolean = false;
-		public function JSInterface()
+		public function WebsubsJsInterface()
 		{
 		}
 		public function initCallbacks(srtPlayer:VimeoSrtPlayer):void
@@ -25,7 +24,9 @@ package org.mindpirates.subtitles
 			ExternalInterface.addCallback('changeLine', changeLine);
 			ExternalInterface.addCallback('play', player.player.play);
 			ExternalInterface.addCallback('pause', player.player.pause);
+			ExternalInterface.addCallback('togglePlayback', player.player.togglePlayback);
 			ExternalInterface.addCallback('seekTo', player.player.seekTo);
+			ExternalInterface.addCallback('seekBy', player.player.seekBy);
 			ExternalInterface.addCallback('addListener', addExternalListener);
 			
 			ExternalInterface.addCallback('hideLanguageMenu', hideLanguageMenu);
@@ -36,6 +37,10 @@ package org.mindpirates.subtitles
 			
 			ExternalInterface.addCallback('getCurrentSrt', getCurrentSrt);
 			
+			ExternalInterface.addCallback('setFontSize', setFontSize);
+			ExternalInterface.addCallback('getFontSize', getFontSize);
+			ExternalInterface.addCallback('isPlaying', isPlaying);
+			 			
 			initJsAPI();
 		} 
 		private function initJsAPI():void
@@ -44,8 +49,8 @@ package org.mindpirates.subtitles
 				<script>
 					<![CDATA[ 
 						(function() {
-							if ('srtApiReady' in window) {
-								srtApiReady();
+							if ('onSubtitleApiReady' in window) {
+								onSubtitleApiReady();
 							};
 						})()
 					]]>
@@ -117,6 +122,18 @@ package org.mindpirates.subtitles
 		private function getCurrentSrt():String
 		{
 			return player.subtitles.currentSrtUrl;
+		}
+		private function setFontSize(value:Number):void
+		{
+			player.subtitles.textField.fontSize = value;
+		}
+		private function getFontSize():Number
+		{
+			return player.subtitles.textField.fontSize;
+		}
+		private function isPlaying():Boolean
+		{
+			return player.player.isPlaying;
 		}
 		
 	}

@@ -67,7 +67,7 @@
 		} 
 	};
 	window.onSrtPlayerEvent = function(player_id, type, e) {  
-		console.log(type)
+		//console.log(type)
 		$(window[api_name].listeners).each(function(i,obj) { 
 			if (obj.type === type && obj.swf === $('#'+player_id)[0]) {  
 				obj.handler.apply(window, [e, player_id]); 

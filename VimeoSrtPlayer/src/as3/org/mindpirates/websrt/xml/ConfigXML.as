@@ -1,4 +1,4 @@
-package org.mindpirates.subtitles.xml
+package org.mindpirates.websrt.xml
 {  
 	import flash.display.LoaderInfo;
 
