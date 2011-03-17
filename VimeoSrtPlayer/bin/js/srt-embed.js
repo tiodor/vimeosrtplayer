@@ -25,9 +25,9 @@ var flashVars = {
 	vimeoId: vimeo_id, 
 	srt: srt_url,
 	localization: defaultLocalization,
-	srtFontSize: 14
-}; 
-
+	srtFontSize: 14,
+	queryParams: escape(swf_url.split('?')[1])
+};  
 var embedHandler = function(e) {  
 	if (e.success) {
 		srtPlayer = $('#'+swf_id)[0];

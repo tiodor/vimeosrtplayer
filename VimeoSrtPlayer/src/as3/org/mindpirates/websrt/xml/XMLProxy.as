@@ -1,4 +1,4 @@
-package org.mindpirates.subtitles.xml
+package org.mindpirates.websrt.xml
 { 
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
@@ -8,8 +8,8 @@ package org.mindpirates.subtitles.xml
 	
 	//import org.osflash.thunderbolt.Logger;
 	
-	[Event(name="complete", type="org.mindpirates.subtitles.xml.XMLProxy")]
-	[Event(name="error", type="org.mindpirates.subtitles.xml.XMLProxy")]
+	[Event(name="complete", type="org.mindpirates.websrt.xml.XMLProxy")]
+	[Event(name="error", type="org.mindpirates.websrt.xml.XMLProxy")]
 	public class XMLProxy extends EventDispatcher
 	{
 		

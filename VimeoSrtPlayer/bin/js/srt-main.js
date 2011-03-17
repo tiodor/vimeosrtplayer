@@ -4,14 +4,14 @@
  */
 
 
-var defaultVimeoId = 14960254; // Old Fish Jazz band, Kevin Klein
-var defaultSrt = 'srt/example.srt';
-var defaultLocalization = "srt/subtitles.xml?time="+new Date().getTime(); 
+var defaultVimeoId = 17712557; // Old Fish Jazz band, Kevin Klein
+var defaultSrt = /*'srt/example.srt'*/'';
+var defaultLocalization = "srt/list.xml?time="+new Date().getTime(); 
 
 var swf_container_id = 'flashContent';
 var swf_id = 'VimeoSrtPlayer';
-var swf_url = 'swf/VimeoSrtPlayer.swf?time='+new Date().getTime()+'&show_portrait=0';
-
+var swf_url = 'swf/VimeoSrtPlayer.swf?time='+new Date().getTime()+'&title=0&byline=0&portrait=0'
+ 
 var srtPlayer = null;	 
 var vimeo_id = _GET('id') || defaultVimeoId;
 var srt_url = _GET('srt') || defaultSrt;

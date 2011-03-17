@@ -4,6 +4,7 @@ package de.derhess.video.vimeo {
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
+	import flash.display.SimpleButton;
 	import flash.display.Sprite;
 	import flash.display.StageDisplayState;
 	import flash.events.Event;
@@ -19,15 +20,19 @@ package de.derhess.video.vimeo {
 	import flash.system.LoaderContext;
 	import flash.system.Security;
 	import flash.system.SecurityDomain;
+	import flash.ui.Keyboard;
 	import flash.utils.Timer;
 	import flash.utils.getDefinitionByName;
 	
-	import org.mindpirates.subtitles.JSInterface;
-	import org.mindpirates.subtitles.JsEvent;
-	import org.mindpirates.subtitles.VimeoAuth;
-	import org.mindpirates.subtitles.VimeoSrtPlayer;
-	import org.mindpirates.subtitles.xml.ConfigXML;
-	import org.osflash.thunderbolt.Logger;
+	import org.mindpirates.video.VideoEvent;
+	import org.mindpirates.video.interfaces.IVideoPlayer;
+	import org.mindpirates.video.interfaces.IVideoPlayerUI;
+	import org.mindpirates.video.interfaces.IVimeoPlayer;
+	import org.mindpirates.websrt.xml.ConfigXML;
+	import org.mindpirates.websubs.JsEvent;
+	import org.mindpirates.websubs.VimeoAuth;
+	import org.mindpirates.websubs.VimeoSrtPlayer;
+	import org.mindpirates.websubs.WebsubsJsInterface; 
 	 
 	 
 	 
@@ -55,7 +60,7 @@ package de.derhess.video.vimeo {
 	[Event(name="duration", type="de.derhess.video.vimeo.VimeoEvent")]
 	[Event(name="status", type="de.derhess.video.vimeo.VimeoEvent")]
 	[Event(name="fullscreen", type="de.derhess.video.vimeo.VimeoEvent")]
-	public class VimeoPlayer extends Sprite {
+	public class VimeoPlayer extends Sprite implements IVimeoPlayer {
 		
 		//--------------------------------------------------------------------------
         //
@@ -72,18 +77,28 @@ package de.derhess.video.vimeo {
 		//
 		//--------------------------------------------------------------------------
 		
-		public var js:JSInterface;
-		
+		private var _js:WebsubsJsInterface;
+		public function get jsInterface():WebsubsJsInterface
+		{
+			return _js;
+		}
 		
 		/**
 		 * A sprite that contains the video as well as the thumbnail images and functions to show them
 		 */
-		public var video_manager:Object;
-		
+		private var _video_manager:Object;
+		public function get videoManager():Object
+		{
+			return _video_manager;
+		}
 		/**
 		 * The actual video object instance within moogaloop
 		 */
-		public var video:Video;
+		private var _video:Video;
+		public function get video():Video
+		{
+			return _video;
+		}
 		public var loader:Loader;
 		public var overlay:Sprite;
 		
@@ -94,14 +109,22 @@ package de.derhess.video.vimeo {
 		public var moogaloop:Object = false; // the player
 		private var player_mask:Sprite = new Sprite(); // some sprites inside moogaloop go outside the bounds of the player. we use a mask to hide it
 		
-		public var ui:VimeoPlayerUI; // gives references to UI elements within moogaloop
-		
+		private var _ui:IVideoPlayerUI; // gives references to UI elements within moogaloop
+		public function get ui():IVideoPlayerUI
+		{
+			return _ui;
+		}
 		private var load_timer:Timer = new Timer(200);
 		private var event_timer:Timer = new Timer(100);
 		
 		private var playerColor:String = "";
-		private var volume:Number = 100;
-		private var duration:Number = 0;
+		private var _volume:Number = 100;
+		public function get volume():Number
+		{
+			return _volume;
+		}
+	 
+		private var _duration:Number = 0;
 		private var isDurationChanged:Boolean = true;
 		
 		private var oldCurrentTime:Number = 0;
@@ -109,17 +132,24 @@ package de.derhess.video.vimeo {
 		private var playedOnce:Boolean = false;
 		private var url:String;
 		private var isVolumeDragging:Boolean = false;
-		
+		public var keyboardSeekSeconds:Number = 2;
 		//--------------------------------------------------------------------------
 		//
 		//  Properties
 		//
 		//--------------------------------------------------------------------------
-		public var player_width:int = 400; // To Change the player size use the setSize(w,h) function
-		public var player_height:int = 300; // To Change the player size use the setSize(w,h) function
+		private var _player_width:int = 400; // To Change the player size use the setSize(w,h) function
+		private var _player_height:int = 300; // To Change the player size use the setSize(w,h) function
 		public var enableCompleteEvent:Boolean = true; // when set this to false, the wrapper class will stop dispatching Events - (Perfomance)
 		public var enablePlayheadEvent:Boolean = true; // when set this to false, the wrapper class will stop dispatching Playing Status Events (Perfomance))
-		
+		public function get playerWidth():Number
+		{
+			return _player_width;
+		}
+		public function get playerHeight():Number
+		{
+			return _player_height;
+		}
 		//--------------------------------------------------------------------------
 		//
 		//  Additional getters and setters
@@ -129,7 +159,7 @@ package de.derhess.video.vimeo {
 		 * return if the video is playing or not
 		 * @return
 		 */
-		public function get isVideoPlaying():Boolean
+		public function get isPlaying():Boolean
 		{
 			return moogaloop.api_isPlaying();
 		}
@@ -141,16 +171,15 @@ package de.derhess.video.vimeo {
 		private var clip_id:int; 
 		private var loaderParams:Object; 
 		
-		public function VimeoPlayer(info:LoaderInfo, w:int, h:int, jsInterface:JSInterface=null) {
+		public function VimeoPlayer(info:LoaderInfo, w:int, h:int, jsInterface:WebsubsJsInterface=null) {
 			this.setDimensions(w, h);  
-			js = jsInterface;
-			
+			_js = jsInterface;
 			loaderParams = info.parameters;
 			clip_id = loaderParams['vimeoId'];
 			Security.allowDomain("*");
 			Security.loadPolicyFile("http://vimeo.com/moogaloop/crossdomain.xml"); 
 			url = MOOGALOOP_URL + "?fp_version=9&oauth_key="+VimeoAuth.CONSUMER_KEY+"&clip_id="+clip_id + "&width=" + w + "&height=" + h + "&fullscreen=1" + (loaderParams.queryParams ? '&'+loaderParams.queryParams : '');
- 
+			
 			loader = new Loader(); 
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
 			loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleLoadingError, false, 0, true);
@@ -161,35 +190,70 @@ package de.derhess.video.vimeo {
 			addEventListener(MouseEvent.CLICK, handleUIClick, true, 0, true);
 			addEventListener(MouseEvent.MOUSE_DOWN, handleUIMouseDown, true, 0, true);
 			addEventListener(MouseEvent.MOUSE_UP, handleUIMouseUp, true, 0, true);
-				
+			
 			
 		}
 		private function handleLoadingError(e:Event):void
 		{ 
-			if (js) {
+			if (jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.MOOGALOOP_ERROR);
 				event.moogaloopUrl = url;
-				js.fireEvent(event);
+				jsInterface.fireEvent(event);
 			}
 			throw new Error('Failed loading '+url)
 		}
 		private function handleStatus(e:VimeoEvent):void
 		{
-			if (e.info == VimeoPlayingState.PLAYING && getCurrentVideoTime() > 0) {
-				playedOnce = true;
+			if (e.info == VimeoPlayingState.PLAYING && videoPosition > 0) {
+				playedOnce = true; 
 			}
 		}
 		private function handleAddedToStage(e:Event):void
 		{ 
 			stage.addEventListener(FullScreenEvent.FULL_SCREEN, handleFullscreenChanged, false, 0, true);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown, false, 0, true);
 		}
 		
+		private var lastSeekOccuredTime:Number; /* real time when seekTo was called for the last time */
+		private var lastSeekValue:Number; /* time value passed to seekTo last time it was called */ 
+		public function seekBy(value:Number):void
+		{ 
+			var newTime:Number = videoPosition + value;
+			
+			if (lastSeekOccuredTime && new Date().getTime() < lastSeekOccuredTime + value*1000) {
+				newTime = lastSeekValue + value;
+			}
+			
+			seekTo( newTime );	
+			
+			lastSeekValue = newTime;
+			lastSeekOccuredTime = new Date().getTime();
+		}
+		private function handleKeyDown(e:KeyboardEvent):void
+		{ 
+			var key:uint = e.keyCode; 
+			switch (key) {
+				case Keyboard.LEFT :					
+					seekBy( -keyboardSeekSeconds * (e.shiftKey ? 5 : 1) );
+					break;
+				case Keyboard.RIGHT :
+					seekBy( keyboardSeekSeconds * (e.shiftKey ? 5 : 1) );			 
+					break;
+				case Keyboard.UP :
+					volume += 1;
+					break;
+				case Keyboard.DOWN :
+					volume -= 1;
+					break;
+			}
+			
+		}
 		
 		/**
 		 * Returns the current video playhead time in milli seconds
 		 * @return
 		 */
-		public function getCurrentVideoTime():Number
+		public function get videoPosition():Number
 		{
 			return moogaloop.api_getCurrentTime();
 		}
@@ -197,30 +261,30 @@ package de.derhess.video.vimeo {
 		/**
 		 * returns duration of video in seconds
 		 */
-		public function getDuration():Number
-		{	
+		public function get videoDuration():Number
+		{	 
+			//Logger.info('--> get videoDuration')
 			if (moogaloop.player_loaded )
 			{
+				//Logger.info('--> player loaded')
 				var tDuration:Number = moogaloop.api_getDuration();
-			
-				if (isDurationChanged && (tDuration != duration))
+				
+				//Logger.info('--> tDuration '+tDuration)
+				if (isDurationChanged && (tDuration != _duration))
 				{
+					//Logger.info('--> duration has changed')
 					isDurationChanged = false;
-					duration = tDuration
+					_duration = tDuration
 					var e:VimeoEvent = new VimeoEvent(VimeoEvent.DURATION);
-					e.duration = duration
+					e.duration = _duration
 					dispatchEvent(e);
+					//Logger.info('--> duration dispatched')
 					
-				}
-				return duration;
-			}
-				else
-			{
-				return 0;
-			}
+				} 
+			} 
 			
-			
-			
+			//Logger.info('--> videoDuration: '+_duration)
+			return _duration
 			
 		}
 
@@ -232,14 +296,16 @@ package de.derhess.video.vimeo {
 		/**
 		 * set Volume for the video. Values between 0-100
 		 */
-		public function setVolume(value:Number):void
+		public function set volume(value:Number):void
 		{
+			if (value < 0) value = 0;
+			if (value > 100) value = 100;
 			moogaloop.api_setVolume(value); 
-			volume = value;
-			if (js) {
+			_volume = value;
+			if (jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.VOLUME_CHANGED);
 				event.volume = value;
-				js.fireEvent(event);
+				jsInterface.fireEvent(event);
 			}
 		}
 		
@@ -259,10 +325,10 @@ package de.derhess.video.vimeo {
 		 */ 
 		private function handleOnSeek(time:Number):void
 		{
-			if (js) {
+			if (jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.SEEK);
-				event.position = time * getDuration();
-				js.fireEvent(event);
+				event.position = time * videoDuration;
+				jsInterface.fireEvent(event);
 			}
 		}
 		/**
@@ -299,29 +365,28 @@ package de.derhess.video.vimeo {
 		{
 			// changing the volume using moogaloop's volume bar causes an IO_Error ("NetworkError: 401 Unauthorized - http://vimeo.com/moogaloop/set_preference/")
 			// workaround by stopping the MOUSE_DOWN event and handling volume changes via the api_setVolume function
-			if (ui.volume.contains(e.target as DisplayObject)) {
+			if (ui.volumeSlider.contains(e.target as DisplayObject)) {
 				stopEvent(e);
-				var r:Number = e.localX / ui.volume.width; 
-				setVolume(r*100);
+				var r:Number = e.localX / ui.volumeSlider.width; 
+				volume = r*100;
 				isVolumeDragging = true;
-				ui.volume.addEventListener(MouseEvent.MOUSE_MOVE, handleVolumeMouseMove, false, 0, true); 
+				ui.volumeSlider.addEventListener(MouseEvent.MOUSE_MOVE, handleVolumeMouseMove, false, 0, true); 
 				ui.playbar.addEventListener(MouseEvent.MOUSE_MOVE, handlePlaybarMouseMove, false, 0, true);
 			}	
 		}
 		private function handleVolumeMouseMove(e:MouseEvent):void
 		{ 
-			var r:Number = e.localX / ui.volume.width;
-			
-			setVolume(r*100);
+			var r:Number = e.localX / ui.volumeSlider.width;
+			volume = r*100;
 		} 
 		private function handlePlaybarMouseMove(e:MouseEvent):void
 		{
-			if (e.stageY > ui.volume.y && e.stageY < (ui.volume.y + ui.volume.height) ) {
-				if (e.stageX < ui.volume.x) {
-					setVolume(0)
+			if (e.stageY > ui.volumeSlider.y && e.stageY < (ui.volumeSlider.y + ui.volumeSlider.height) ) {
+				if (e.stageX < ui.volumeSlider.x) {
+					volume = 0;
 				}
-				if (e.stageX > ui.volume.x + ui.volume.width) {
-					setVolume(100);
+				if (e.stageX > ui.volumeSlider.x + ui.volumeSlider.width) {
+					volume = 100;
 				}
 			} 
 		}
@@ -329,8 +394,8 @@ package de.derhess.video.vimeo {
 		{
 			if (isVolumeDragging) {
 				ui.playbar.removeEventListener(MouseEvent.MOUSE_MOVE, handlePlaybarMouseMove);
-				ui.volume.removeEventListener(MouseEvent.MOUSE_MOVE, handleVolumeMouseMove);
-				ui.volume.removeEventListener(MouseEvent.MOUSE_UP, handleVolumeMouseMove);
+				ui.volumeSlider.removeEventListener(MouseEvent.MOUSE_MOVE, handleVolumeMouseMove);
+				ui.volumeSlider.removeEventListener(MouseEvent.MOUSE_UP, handleVolumeMouseMove);
 			}
 		}
 		public function clickOnFullscreenButton(e:Event):Boolean {
@@ -354,7 +419,7 @@ package de.derhess.video.vimeo {
 		 
 			//Logger.info('target: '+e.target.parent)
 			switch (e.target) {
-				case ui.fullscreen_button:
+				case ui.fullscreenButton:
 					toggleFullscreen();
 					stopEvent(e);
 					break;
@@ -370,12 +435,12 @@ package de.derhess.video.vimeo {
 		
 		private function handleSeek(e:Event):void
 		{
-			Logger.info('seek!: '+e)
+			//Logger.info('seek!: '+e)
 		}
 		
 		public function togglePlayback():void
 		{			 
-			if (isVideoPlaying) {
+			if (isPlaying) {
 				pause();	
 			}
 			else {
@@ -391,7 +456,7 @@ package de.derhess.video.vimeo {
 		
 		private var _fullscreen:Boolean = false;
 		
-		public function set fullscreen(value:Boolean):void
+		public function set fullscreenMode(value:Boolean):void
 		{
 			if (value == _fullscreen) {
 				return;
@@ -401,18 +466,19 @@ package de.derhess.video.vimeo {
 			_fullscreen = value;
 		}
 		
-		public function get fullscreen():Boolean
+		public function get fullscreenMode():Boolean
 		{
 			return _fullscreen;
 		}
 		
 		public function toggleFullscreen():void
 		{ 
-			fullscreen = !fullscreen;
+			fullscreenMode = !fullscreenMode;
 		} 
 		private function handleFullscreenChanged(e:FullScreenEvent):void
 		{   
-			var wasPlaying:Boolean = isVideoPlaying;
+			//Logger.info('--> handleFullscreenChanged()')
+			var wasPlaying:Boolean = isPlaying;
 			_fullscreen = e.fullScreen; // catching ESC-key exit
 			try {
 				setSize(stage.stageWidth, stage.stageHeight);
@@ -422,36 +488,40 @@ package de.derhess.video.vimeo {
 				// when leaving fullscreen, moogaloop throws an error in api_setSize,
 				// and afterwards the player controls are not visible.
 				// we bring them back by calling play(), and if the player was not actually playing we call pause() immediatly.
-				// problem: getCurrentVideoTime() changes, e.g. when toggling fullscreen before playback, getCurrentVideoTime() wion't be 0 anymore
-				
+				// problem: videoPosition changes, e.g. when toggling fullscreen before playback, videoPosition wion't be 0 anymore
+			
 				play(); 
+				//Logger.info('---> wasPlaying: '+wasPlaying)
 				if (!wasPlaying) {
+					//Logger.info('---> PAUSE IT')
 					pause(); 
 				};
-				
+				var fsButton:SimpleButton = ui.fullscreenButton as SimpleButton;
 				// the fullscreen button gets stuck in its hover state, we fix it by manually setting the
 				// upState as the new overState and revert the changes on its first rollover
-				var overState:* = ui.fullscreen_button.overState;
+				var overState:* = fsButton.overState;
 				var fixState:Function = function(e:Event):void
 				{ 
-					ui.fullscreen_button.overState = overState;		
-					ui.fullscreen_button.removeEventListener(MouseEvent.ROLL_OVER, fixState);
+					fsButton.overState = overState;		
+					fsButton.removeEventListener(MouseEvent.ROLL_OVER, fixState);
 				}
-				ui.fullscreen_button.overState = ui.fullscreen_button.upState;
-				ui.fullscreen_button.addEventListener(MouseEvent.ROLL_OVER, fixState, false, 0, true);
+				fsButton.overState = fsButton.upState;
+				fsButton.addEventListener(MouseEvent.ROLL_OVER, fixState, false, 0, true);
 				
 				
 				// When going to fullscreen before playback started, and leave fullscreen again before playback,
 				// the thumbnail image is lost. Fix:   
 				if (!playedOnce) {
-					video_manager.showThumbnail();
+					videoManager.showThumbnail();
+					moogaloop.api_unload();
 				}
 				
 			} 
 			
-			var evt:VimeoEvent = new VimeoEvent( VimeoEvent.FULLSCREEN );
+			var evt:VideoEvent = new VideoEvent( VideoEvent.FULLSCREEN );
 			evt.fullScreen = e.fullScreen;
 			dispatchEvent(evt);
+			//Logger.info('--> dispatch event')
 		}  
 		 
 		public function getInstanceByClass(container:*, className:String):DisplayObject
@@ -475,7 +545,7 @@ package de.derhess.video.vimeo {
         //--------------------------------------------------------------------------
 		public function stop():void
 		{
-			if (getCurrentVideoTime() > 0)
+			if (videoPosition > 0)
 			{
 				seekTo(0);
 				pause();
@@ -483,7 +553,7 @@ package de.derhess.video.vimeo {
 				event_timer.reset();
 				
 				var e:VimeoEvent = new VimeoEvent(VimeoEvent.STATUS);
-				e.duration = duration;
+				e.duration = videoDuration;
 				e.info = VimeoPlayingState.STOP;
 				dispatchEvent(e);
 			}
@@ -491,7 +561,6 @@ package de.derhess.video.vimeo {
 		
 		public function play():void { 
 			moogaloop.api_play();
-			getDuration(); 
 			if (enableCompleteEvent)
 			{
 				event_timer.start();				
@@ -499,47 +568,57 @@ package de.derhess.video.vimeo {
 				else
 			{
 				var e:VimeoEvent = new VimeoEvent(VimeoEvent.STATUS);
-				e.currentTime = getCurrentVideoTime();
+				e.currentTime = videoPosition;
 				e.duration = 0;
 				e.info = VimeoPlayingState.PLAYING;
 				dispatchEvent(e); 
 				
 			}
-			if (js) {
+			if (jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.PLAY);
-				event.position = getCurrentVideoTime();
-				js.fireEvent(event);
+				event.position = videoPosition;
+				jsInterface.fireEvent(event);
 			}
 		}
 		
 		public function pause():void {
+			//Logger.info('pause()')
 			moogaloop.api_pause();
 			var e:VimeoEvent = new VimeoEvent(VimeoEvent.STATUS);
-			e.currentTime = getCurrentVideoTime();
+			e.currentTime = videoPosition;
 			e.duration = 0;
 			e.info = VimeoPlayingState.PAUSE;
 			dispatchEvent(e);
 			event_timer.stop();
 			event_timer.reset();
-			if (js) {
+			if (jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.PAUSE);
-				event.position = getCurrentVideoTime();
-				js.fireEvent(event);
+				event.position = videoPosition;
+				jsInterface.fireEvent(event);
 			}
+			//Logger.info('... paused')
 		}
 		
 		/**
 		 * Seek to specific loaded time in video (in seconds)
 		 */
 		public function seekTo(time:Number):void {
-			Logger.info('seekTo('+time+')')
-			moogaloop.api_seekTo(time);
+			if (time < 0) time = 0;
+			if (videoDuration && time > videoDuration) time = videoDuration;
 			
+			var wasPlaying:Boolean = isPlaying;
+			if (!wasPlaying) {
+				moogaloop.api_play();
+			}
+			moogaloop.api_seekTo(time);
+			if (!wasPlaying) {
+				moogaloop.api_pause();
+			}
 			if (enablePlayheadEvent)
 			{
 				var vimeoPlayEvent:VimeoEvent = new VimeoEvent(VimeoEvent.STATUS);
 				vimeoPlayEvent.currentTime = time;
-				vimeoPlayEvent.duration = duration;
+				vimeoPlayEvent.duration = videoDuration;
 				vimeoPlayEvent.info = VimeoPlayingState.PLAYING;
 				dispatchEvent(vimeoPlayEvent);
 			}
@@ -559,12 +638,12 @@ package de.derhess.video.vimeo {
 		/**
 		 * Load in a different video
 		 */
-		public function loadVideo(id:int):void {
+		public function loadVideo(id:*):void {
 			moogaloop.api_loadVideo(id);
 			isDurationChanged = true;
 			
 			// reset duration property
-			duration = 0;
+			_duration = 0;
 			var e:VimeoEvent = new VimeoEvent(VimeoEvent.STATUS);
 			e.duration = 0;
 			e.info = VimeoPlayingState.NEW_VIDEO;
@@ -580,12 +659,12 @@ package de.derhess.video.vimeo {
 		 */
 		public function setSize(w:int, h:int):void { 
 			this.setDimensions(w, h);
-			Logger.info('setSize('+w+', '+h+')');
+			//Logger.info('setSize('+w+', '+h+')');
 			moogaloop.api_setSize(w, h);
-			Logger.info('moogaloop: '+moogaloop);
-			Logger.info('moogaloop.api_setSize: '+moogaloop.api_setSize);
+			//Logger.info('moogaloop: '+moogaloop);
+			//Logger.info('moogaloop.api_setSize: '+moogaloop.api_setSize);
 			
-			Logger.info('moogaloop size', moogaloop.width, moogaloop.height)
+			//Logger.info('moogaloop size', moogaloop.width, moogaloop.height)
 			this.redrawMask();
 		}
 		
@@ -706,17 +785,16 @@ package de.derhess.video.vimeo {
         //
         //--------------------------------------------------------------------------
 		private function setDimensions(w:int, h:int):void {
-			player_width  = w;
-			player_height = h;
+			_player_width  = w;
+			_player_height = h;
 		}
 		
 		private function onComplete(e:Event):void 
 		{ 
-			//Logger.info('onComplete', e);
 			// Finished loading moogaloop
 			container.addChild(e.target.loader.content);
 			moogaloop = e.target.loader.content;
-				
+			
 			// Create the mask for moogaloop
 			addChild(player_mask);
 			container.mask = player_mask;
@@ -750,29 +828,27 @@ package de.derhess.video.vimeo {
 				//embedSettings = defaultVars.vars.embed_settings; 
 				
 				// set references to moogaloop UI elements
-				ui = new VimeoPlayerUI(this); 
-				video_manager = getInstanceByClass(moogaloop, 'VideoManager');
-				video = video_manager.getChildAt(0).getChildAt(0);
-				overlay = video_manager.getChildAt(0).getChildAt(1);
+				_ui = new VimeoPlayerUI(this); 
+				_video_manager = getInstanceByClass(moogaloop, 'VideoManager');
+				_video = videoManager.getChildAt(0).getChildAt(0);
+				overlay = videoManager.getChildAt(0).getChildAt(1);
 				moogaloop.api_enableHDEmbed(); 
 //				setSize(player_width, player_height);
 
 				enableSeekEvents();
-					
-				if (js) {
-					var event:JsEvent = new JsEvent(JsEvent.MOOGALOOP_READY);
-					event.duration = getDuration();
+				
+				if (jsInterface) {
+					var event:JsEvent = new JsEvent(JsEvent.MOOGALOOP_READY); 
+					event.duration = videoDuration;
 					event.moogaloopUrl = url;
-					js.fireEvent(event);
+					jsInterface.fireEvent(event);
 				}
 				
 				var vimeoEvent:VimeoEvent = new VimeoEvent(VimeoEvent.PLAYER_LOADED);
 				vimeoEvent.duration = 0;
 				vimeoEvent.info = "";
 				dispatchEvent(vimeoEvent);
-				
- 				Logger.info('lets go')
-				
+			
 			}
 		}
 		
@@ -791,7 +867,7 @@ package de.derhess.video.vimeo {
 		private function handleEventTimer(e:TimerEvent):void
 		{ 
 			var isPlaying:Boolean = true;
-			var newCurrentTime:Number = getCurrentVideoTime();
+			var newCurrentTime:Number = videoPosition;
 			//Check if the currentTime Value already exists
 			if (oldCurrentTime == newCurrentTime && oldCurrentTime != 0)
 			{
@@ -801,7 +877,7 @@ package de.derhess.video.vimeo {
 			{
 				var vimeoEvent:VimeoEvent = new VimeoEvent(VimeoEvent.STATUS);
 				vimeoEvent.currentTime = newCurrentTime;
-				vimeoEvent.duration = getDuration();
+				vimeoEvent.duration = videoDuration;
 				vimeoEvent.info = VimeoPlayingState.BUFFERING;
 				dispatchEvent(vimeoEvent);
 				isPlaying = false;
@@ -809,11 +885,11 @@ package de.derhess.video.vimeo {
 			
 			// It is almost impossible that the currentTime has the same value MAX_REPEAT_SAME_CURRENT_TIME times,
 			// when it is playing. So I think the video playing is completed
-			if (!isVideoPlaying && (completeCurrentTimeCounter >= MAX_REPEAT_SAME_CURRENT_TIME) )
+			if (!isPlaying && (completeCurrentTimeCounter >= MAX_REPEAT_SAME_CURRENT_TIME) )
 			{
 				var vimeoEventComplete:VimeoEvent = new VimeoEvent(VimeoEvent.STATUS);
-				vimeoEventComplete.currentTime = getDuration();
-				vimeoEventComplete.duration = getDuration();
+				vimeoEventComplete.currentTime = videoDuration;
+				vimeoEventComplete.duration = videoDuration;
 				vimeoEventComplete.info = VimeoPlayingState.VIDEO_COMPLETE;
 				dispatchEvent(vimeoEventComplete);
 				event_timer.stop();
@@ -832,8 +908,8 @@ package de.derhess.video.vimeo {
 			if (enablePlayheadEvent && isPlaying)
 			{
 				var vimeoPlayEvent:VimeoEvent = new VimeoEvent(VimeoEvent.STATUS);
-				vimeoPlayEvent.currentTime = getCurrentVideoTime();
-				vimeoPlayEvent.duration = getDuration();
+				vimeoPlayEvent.currentTime = videoPosition;
+				vimeoPlayEvent.duration = videoDuration;
 				vimeoPlayEvent.info = VimeoPlayingState.PLAYING;
 				dispatchEvent(vimeoPlayEvent);
 			}
@@ -848,8 +924,8 @@ package de.derhess.video.vimeo {
 			if (!mouseMoveEnabled) {
 				return;
 			}
-			if( this.mouseX >= this.x && this.mouseX <= this.x + this.player_width &&
-				this.mouseY >= this.y && this.mouseY <= this.y + this.player_height ) {
+			if( this.mouseX >= this.x && this.mouseX <= this.x + this.playerWidth &&
+				this.mouseY >= this.y && this.mouseY <= this.y + this.playerHeight ) {
 				moogaloop.mouseMove(e);
 			}
 			else {
@@ -857,10 +933,10 @@ package de.derhess.video.vimeo {
 			}
 		}
 		
-		private function redrawMask():void {
+		private function redrawMask():void { 
 			with( player_mask.graphics ) {
 				beginFill(0x000000, 1);
-				drawRect(container.x, container.y, player_width, player_height);
+				drawRect(container.x, container.y, playerWidth, playerHeight);
 				endFill();
 			}
 		}

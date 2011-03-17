@@ -1,9 +1,6 @@
-package org.mindpirates.subtitles
+package org.mindpirates.websubs
 { 
 	import com.chewtinfoil.utils.StringUtils;
-	
-	import de.derhess.video.vimeo.VimeoEvent;
-	import de.derhess.video.vimeo.VimeoPlayer;
 	
 	import fl.controls.ComboBox;
 	import fl.data.DataProvider;
@@ -27,11 +24,14 @@ package org.mindpirates.subtitles
 	import nl.inlet42.data.subtitles.SubtitleParser;
 	import nl.inlet42.data.subtitles.SubtitlesList;
 	
-	import org.mindpirates.subtitles.xml.ConfigXML;
-	import org.mindpirates.subtitles.xml.LocalizationXML;
-	import org.mindpirates.subtitles.xml.XMLProxy;
 	import org.mindpirates.utils.FontLoader;
 	import org.mindpirates.utils.ISO_639_2B;
+	import org.mindpirates.video.VideoEvent;
+	import org.mindpirates.video.interfaces.IVideoPlayer;
+	import org.mindpirates.video.vimeo.MoogaloopWrapper;
+	import org.mindpirates.websrt.xml.ConfigXML;
+	import org.mindpirates.websrt.xml.LocalizationXML;
+	import org.mindpirates.websrt.xml.XMLProxy;
 	import org.osflash.thunderbolt.Logger;
 	 
 	/** 
@@ -44,7 +44,7 @@ package org.mindpirates.subtitles
 	{ 
 		public var combo:ComboBox;
 		public var textField:SubtitleTextField;
-		public var player:VimeoPlayer; 
+		public var player:IVideoPlayer; 
 		public var currentSubtitleLine:SubtitleLine;		 
 		public var currentScale:Number = 1;  
 		public var localization:LocalizationXML;
@@ -55,27 +55,35 @@ package org.mindpirates.subtitles
 		private var timer:Timer;
 		
 		  
-		public function SubtitlesLayer(vimeoPlayer:VimeoPlayer)
+		public function SubtitlesLayer(vimeoPlayer:IVideoPlayer)
 		{  
 			super();
-			   
+			 //  Logger.info('new SubtitlesLayer()')
 			player = vimeoPlayer;  
-			player.addEventListener(VimeoEvent.FULLSCREEN, handleFullscreenChange, false, 0, true); 
+			//Logger.info('player: '+player)
+			player.addEventListener(VideoEvent.FULLSCREEN, handleFullscreenChange, false, 0, true); 
 			
-			originalSize = {width:player.player_width, height:player.player_height}; 
-			 
+			originalSize = {width:player.playerWidth, height:player.playerHeight}; 
+			mouseChildren = false;
+			mouseEnabled = false;
 		} 
 		public function init(config:ConfigXML):void
 		{ 
 			_config = config;
-			
+			//Logger.info('\n----------------- DEBUGGING VideoManager ERROR --------------------------\nconfig: '+config)
 			timer = new Timer(40);
 			timer.addEventListener(TimerEvent.TIMER, handleTimer, false, 0, true);
 			
 			textField = new SubtitleTextField(config);
-			textField.width = player.player_width; 
-			player.video_manager.addChild(textField);
-			
+			//Logger.info('textField: '+textField)
+			textField.width = player.playerWidth; 
+			//Logger.info('(player as MoogaloopWrapper): '+(player as MoogaloopWrapper))
+			//Logger.info('(player as MoogaloopWrapper).videoManager: '+(player as MoogaloopWrapper).videoManager+', '+( (player as MoogaloopWrapper).videoManager is Sprite ))
+			//var videoManager:Sprite = (player as IVideoPlayer).videoManager as Sprite;
+			//Logger.info('videoManager: '+videoManager+', textfield: '+textField)
+				
+			player.video.parent.addChild(textField);
+			//Logger.info('text attached');
 			if (config.srt) {
 				loadSrt(config.srt); 
 			}
@@ -97,16 +105,17 @@ package org.mindpirates.subtitles
 		// 
 		//-------------------------------------------------------------------------------------------
 		
-		private function handleFullscreenChange(e:VimeoEvent):void
+		private function handleFullscreenChange(e:VideoEvent):void
 		{	 
-			currentScale = player.player_width / originalSize.width; 
+			//Logger.info('handleFullscreenChange()')
+			currentScale = player.playerWidth / originalSize.width; 
 			textField.scale = currentScale;
 			updateComboPosition(); 
 			
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.FULLSCREEN_CHANGED);
-				event.fullscreen = player.fullscreen;
-				player.js.fireEvent(event);
+				event.fullscreen = player.fullscreenMode;
+				player.jsInterface.fireEvent(event);
 			}
 		} 
 		
@@ -114,7 +123,7 @@ package org.mindpirates.subtitles
 		private function handleTimer(e:Event):void
 		{       
 			// update text
-			var line:SubtitleLine = list.getLineAtTime( player.getCurrentVideoTime() )  
+			var line:SubtitleLine = list.getLineAtTime( player.videoPosition )  
 			if (line) { 
 				if (line != currentSubtitleLine || forceTextRefresh) {
 					currentSubtitleLine = line;
@@ -158,10 +167,10 @@ package org.mindpirates.subtitles
 			updateTextPosition();
 			
 			
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.SUBTITLE_TEXT);
 				event.text = _text;
-				player.js.fireEvent(event);
+				player.jsInterface.fireEvent(event);
 			}
 		} 
 		
@@ -172,8 +181,8 @@ package org.mindpirates.subtitles
 		 
 		private function updateTextPosition():void
 		{  
-			var margin:Number = config.margin * currentScale + (config.dynpos ? (player.ui.playbar.alpha ? player.ui.playButton.height : 0) : 0);
-			textField.y = player.player_height - textField.textHeight*currentScale - margin; 
+			var margin:Number = config.margin * currentScale + (config.dynpos ? (player.ui.playbar.alpha ? player.ui.playButton.height > config.margin * currentScale ? player.ui.playButton.height : 0 : 0) : 0);
+			textField.y = player.playerHeight - textField.textHeight*currentScale - margin; 
 			
 		}
 		
@@ -213,10 +222,10 @@ package org.mindpirates.subtitles
 				localization.addEventListener(XMLProxy.ERROR, handleLocalizationXmlError, false, 0, true); 
 				localization.loadXML(config.localization);
 				
-				if (player.js) {
+				if (player.jsInterface) {
 					var event:JsEvent = new JsEvent(JsEvent.LOAD_LOCALIZATION);
 					event.localizationUrl = config.localization;
-					player.js.fireEvent(event);
+					player.jsInterface.fireEvent(event);
 				}
 			}	
 		}
@@ -235,10 +244,10 @@ package org.mindpirates.subtitles
 			localization.removeEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete);
 			localization.removeEventListener(XMLProxy.ERROR, handleLocalizationXmlError); 
 			
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LOCALIZATION_LOADED);
 				event.localizationUrl = config.localization;
-				player.js.fireEvent(event);
+				player.jsInterface.fireEvent(event);
 			}
 		}
 		private function handleLocalizationXmlError(e:Event):void
@@ -247,10 +256,10 @@ package org.mindpirates.subtitles
 			localization.removeEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete);
 			localization.removeEventListener(XMLProxy.ERROR, handleLocalizationXmlError); 
 			
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LOCALIZATION_ERROR);
 				event.localizationUrl = config.localization;
-				player.js.fireEvent(event);
+				player.jsInterface.fireEvent(event);
 			}
 		} 
 		private function createCombo():void
@@ -291,9 +300,9 @@ package org.mindpirates.subtitles
 			combo.dataProvider = new DataProvider(dp);
 			player.ui.playbar.addChild(combo);
 			
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LANGUAGE_MENU_CREATED); 
-				player.js.fireEvent(event);
+				player.jsInterface.fireEvent(event);
 			}
 			
 		}  
@@ -323,27 +332,22 @@ package org.mindpirates.subtitles
 			var srt:String = localization.getFileByLang(lang);
 			var font:String = localization.getFontByLang(lang);
 			
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LANGUAGE_CHANGED);
 				event.lang = lang;
 				event.langName = langName;
-				player.js.fireEvent(event);
+				player.jsInterface.fireEvent(event);
 			}
 			 
-			if (srt) {
-				loadSrt(srt);				
-			}
-			
-			if (font) {
-				loadFont(font);
-			}
+			loadSrt(srt)
+			loadFont(font)
 			
 		} 
 		private function updateComboPosition():void
 		{
 			if (combo) { 
 				combo.x = player.ui.playButton.x;
-				combo.y = player.player_height - combo.height - player.ui.playButton.height - 20;
+				combo.y = player.playerHeight - combo.height - player.ui.playButton.height - 20;
 			}
 		}
 		
@@ -385,17 +389,17 @@ package org.mindpirates.subtitles
 			urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSrtError, false, 0, true);
 			currentSrtUrl = file;
 			
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LOAD_SRT);
 				event.srtUrl = currentSrtUrl;
-				player.js.fireEvent(event);
+				player.jsInterface.fireEvent(event);
 			}
 		} 
 		private function handleSrtError(e:Event):void
 		{ 
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.SRT_ERROR);
-				player.js.fireEvent(event);
+				player.jsInterface.fireEvent(event);
 			}
 			throw new Error('Failed loading subtitles: ' + e);
 		}
@@ -406,10 +410,10 @@ package org.mindpirates.subtitles
 			timer.start(); 			
 			dispatchEvent( new Event( Event.COMPLETE ) ); 
 			
-			if (player.js) {
+			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.SRT_LOADED);
 				event.srtUrl = currentSrtUrl;
-				player.js.fireEvent(event);
+				player.jsInterface.fireEvent(event);
 			}
 			
 			if (combo) {
@@ -433,7 +437,7 @@ package org.mindpirates.subtitles
 			}
 		}
 		
-		public function parseSrt(file:String=null, jsHandler:String=null):String
+		public function parseSrt(file:String=null, jsInterfaceHandler:String=null):String
 		{
 			var result:String = "";
 			if (!file) {
@@ -444,10 +448,10 @@ package org.mindpirates.subtitles
 			else { 
 				var loaded:Function = function(e:Event):void {
 					var lines:Array = SubtitleParser.parseSRT( e.target.data.toString() );  
-					if (jsHandler && ExternalInterface.available) { 
+					if (jsInterfaceHandler && ExternalInterface.available) { 
 						var _list:SubtitlesList = new SubtitlesList(lines, file); 
 						var _result:String = _list.toJson(); 
-						ExternalInterface.call(jsHandler, _result);
+						ExternalInterface.call(jsInterfaceHandler, _result);
 					}
 				}
 				var error:Function = function(e:Event):void {
@@ -466,7 +470,7 @@ package org.mindpirates.subtitles
 			if (combo) {
 				combo.removeEventListener(Event.CHANGE, handleComboChange); 
 			}
-			player.removeEventListener(VimeoEvent.FULLSCREEN, handleFullscreenChange); 
+			player.removeEventListener(VideoEvent.FULLSCREEN, handleFullscreenChange); 
 			timer.removeEventListener(TimerEvent.TIMER, handleTimer);
 			timer.stop();
 		}

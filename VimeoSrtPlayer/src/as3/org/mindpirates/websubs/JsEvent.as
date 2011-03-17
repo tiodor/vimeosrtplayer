@@ -1,4 +1,4 @@
-package org.mindpirates.subtitles
+package org.mindpirates.websubs
 {
 	public class JsEvent
 	{
