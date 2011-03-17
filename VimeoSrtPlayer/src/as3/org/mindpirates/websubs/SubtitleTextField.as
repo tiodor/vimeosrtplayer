@@ -31,7 +31,7 @@ package org.mindpirates.websubs
 			multiline = true; 
 			defaultTextFormat = textFormat;
 			antiAliasType = AntiAliasType.ADVANCED;  
-			filters = [new DropShadowFilter(2,45,0,0.5,2,2), new GlowFilter(0,2,2,2,3)]; 
+			filters = [new DropShadowFilter(2,45,0,0.5,2,2), new GlowFilter(0,1,3,3,4)]; 
 			
 			wordWrap = true;
 			_fontSize = config.fontSize;
