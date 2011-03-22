@@ -1,14 +1,14 @@
-package org.mindpirates.websrt.xml
+package org.mindpirates.websubs
 {  
 	import flash.display.LoaderInfo;
 
 	/** 
 	 * @author Jovica Aleksic
 	 */
-	public class ConfigXML
+	public class Params
 	{
 		private var _data:Object;
-		public function ConfigXML(info:LoaderInfo)
+		public function Params(info:LoaderInfo)
 		{ 
 			_data = info.parameters;
 		}
@@ -61,6 +61,13 @@ package org.mindpirates.websrt.xml
 				return true;
 			}
 			return _data.dynpos == 'true' || _data.dynpos == '1';
+		} 
+		public function get playerClass():String
+		{
+			if (!_data.playerClass) {
+				return null;
+			}
+			return String(_data.playerClass);
 		} 
 	}
 }
