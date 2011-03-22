@@ -3,68 +3,18 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>VimeoSrtPlayer</title> 
 	
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>   
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js"></script>   
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>  
-	<script type="text/javascript" src="../../../jquery-vimeosrt/js/jquery.vimeosrt.js"></script>  
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script>    
+	<script type="text/javascript" src="http://loopmodefiles.com/vimeoapi/vimeosrt/jquery/js/jquery.vimeosrt.js"></script>  
 	<script type="text/javascript">
 				
-		var player_width = 400;
-		var player_height = 225;
-		var clip_id = 14960254;
-		var swf_container_id = 'flashContent';
-		var swf_id = 'VimeoSrtPlayer';
-		var swf_url = '../swf/Moogalover.swf?time='+new Date().getTime()+'&show_portrait=0';
-
-		//  Default swf attributes
-		var attributes = {
-			bgcolor:"#000000" ,
-			id: swf_id,
-			name: swf_id ,
-			allowScriptAccess:"always",
-			allowFullScreen:"true"
-		};
-		 
-		// Default swf params
-		var params = {
-			wmode: "window"
-		}  
-		 
-		// VimeoSrtPlayer options
-		var flashVars = {
-			swfId: swf_id, // must match the id attribute of the swf object
-			vimeoId: clip_id,  
-			localization: '../srt/subtitles.xml',
-			srtFontSize: 14
-		}; 
-		
-		var embedHandler = function(e) {  
-			if (e.success) {
-				srtPlayer = $('#'+swf_id)[0];
-			}
-			else {
-				throw "'"+swf_id+"' not embedded!";
-			} 
-		};
-		swfobject.embedSWF(
-			swf_url, 
-			swf_container_id, 
-			player_width, player_height, 
-			"10.0.0", "swf/expressInstall.swf", 
-			flashVars, params, attributes, embedHandler);
-		 
+		$(document).ready(function() {
+			$('iframe').vimeosrt({swf:'../swf/VimeoSrtPlayer.swf', playerClass:'MoogaloverWrapper'});
+		});
 				
 	</script> 
 </head>
 <body> 
-	<div id="site">
-		<h1>Moogalover</h1>
-		  
-		<p>
-			<div id="flashHolder">
-				<div id="flashContent">Flash and Javascript required</div>
-			</div>  
-			
-		</p>  
+	<h1>Moogalover</h1>
+	<iframe src="http://player.vimeo.com/video/7100569?title=0&amp;byline=0&amp;portrait=0" width="450" height="253" frameborder="0"></iframe>  
 </body>
 </html>

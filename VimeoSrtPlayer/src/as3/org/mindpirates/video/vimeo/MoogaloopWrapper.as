@@ -71,8 +71,11 @@ package org.mindpirates.video.vimeo
 		private var __completeCurrentTimeCounter:int = 0;
 		private var __playedOnce:Boolean = false;	
 		private static var MAX_REPEAT_SAME_CURRENT_TIME:int = 3;
-		
-		
+		 
+		public function seekBy(value:Number):void
+		{
+			
+		}
 		public function get playerUrl():String
 		{
 			return MOOGALOOP_URL 
@@ -88,7 +91,7 @@ package org.mindpirates.video.vimeo
 		public function MoogaloopWrapper(info:LoaderInfo, w:int, h:int, js:WebsubsJsInterface)
 		{
 			super();
-			
+						
 			loaderParams = info.parameters;
 			Security.allowDomain("*");
 			Security.loadPolicyFile( VIMEO_POLICY_URL ); 
@@ -98,13 +101,13 @@ package org.mindpirates.video.vimeo
 			_playerHeight = h;
 			_jsInterface = js;
 			
-			loadPlayer();
 			
 			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);
 			addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true, 0, true);
 			addEventListener(MouseEvent.MOUSE_UP, handleMouseUp, true, 0, true);  
 			addEventListener(MouseEvent.CLICK, handleClick, true, 0, true);
-			addEventListener(VideoEvent.STATUS, handleStatus, false, 0, true); 
+			addEventListener(VideoEvent.STATUS, handleStatus, false, 0, true);
+			
 		}
 		
 		/**
@@ -115,6 +118,7 @@ package org.mindpirates.video.vimeo
 		internal function handleAddedToStage(e:Event):void
 		{ 
 			stage.addEventListener(FullScreenEvent.FULL_SCREEN, handleFullscreenChanged, false, 0, true);
+			loadPlayer();
 		}
 		 
 		public function loadPlayer():void
@@ -158,6 +162,7 @@ package org.mindpirates.video.vimeo
 		}
 		internal function handleMoogaloopReady():void
 		{ 
+			
 			moogaloop.api_enableHDEmbed(); 
 			
 			// override mouse move handling
@@ -248,7 +253,7 @@ package org.mindpirates.video.vimeo
 			}
 		}
 		
-		public function seekTo(value:int):void
+		public function seekTo(value:Number):void
 		{ 
 			moogaloop.api_seekTo(value);
 			
@@ -469,6 +474,8 @@ package org.mindpirates.video.vimeo
 		 * Wait for Moogaloop to finish setting up
 		 */
 		private function playerLoadedCheck(e:TimerEvent):void {
+			
+			
 			if( moogaloop.player_loaded ) {				
 				load_timer.stop();
 				load_timer.removeEventListener(TimerEvent.TIMER, playerLoadedCheck);

@@ -1,4 +1,4 @@
-package org.mindpirates.websrt.xml
+package org.mindpirates.websubs
 { 
 	import org.osflash.thunderbolt.Logger;
 	 

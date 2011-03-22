@@ -28,7 +28,7 @@ package de.derhess.video.vimeo {
 	import org.mindpirates.video.interfaces.IVideoPlayer;
 	import org.mindpirates.video.interfaces.IVideoPlayerUI;
 	import org.mindpirates.video.interfaces.IVimeoPlayer;
-	import org.mindpirates.websrt.xml.ConfigXML;
+	import org.mindpirates.websubs.Params;
 	import org.mindpirates.websubs.JsEvent;
 	import org.mindpirates.websubs.VimeoAuth;
 	import org.mindpirates.websubs.VimeoSrtPlayer;

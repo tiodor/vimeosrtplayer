@@ -16,8 +16,7 @@ package org.mindpirates.video.vimeo
 	public class MoogaloverWrapper extends MoogaloopWrapper
 	{
 		public function MoogaloverWrapper(info:LoaderInfo, w:int, h:int, js:WebsubsJsInterface)
-		{
-			Logger.info('new MoogaloverWrapper()');
+		{ 
 			super(info, w, h, js);
 		} 
 		override public function get playerUrl():String
@@ -50,13 +49,13 @@ package org.mindpirates.video.vimeo
 		}
 		 
 		override internal function handleMoogaloopReady():void
-		{
-			super.handleMoogaloopReady();
-			
+		{ 
+			Logger.info('moogaloop: '+moogaloop);
+			super.handleMoogaloopReady(); 
 		}
 		override internal function createUI():void
 		{
-			_ui = new MoogaloverUI(moogaloop);		
+			_ui = new MoogaloverUI(moogaloop); 	
 		}
 	}
 }

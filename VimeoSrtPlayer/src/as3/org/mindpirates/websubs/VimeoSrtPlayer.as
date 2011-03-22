@@ -10,12 +10,14 @@ package org.mindpirates.websubs
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.external.ExternalInterface;
+	import flash.net.getClassByAlias;
+	import flash.net.registerClassAlias;
+	import flash.utils.getDefinitionByName;
 	
 	import org.mindpirates.video.VideoEvent;
 	import org.mindpirates.video.interfaces.IVideoPlayer;
 	import org.mindpirates.video.vimeo.MoogaloopWrapper;
 	import org.mindpirates.video.vimeo.MoogaloverWrapper;
-	import org.mindpirates.websrt.xml.ConfigXML;
 	import org.osflash.thunderbolt.Logger;
 	
 	  
@@ -30,23 +32,31 @@ package org.mindpirates.websubs
 	[SWF(width="450", height="225")]
 	public class VimeoSrtPlayer extends Sprite
 	{  
-		public var config:ConfigXML;
+		public var params:Params;
 		public var player:IVideoPlayer;  
 		public var subtitles:SubtitlesLayer;
 		public var js:WebsubsJsInterface;
 		public static var instance:VimeoSrtPlayer;
+		public var PlayerClass:Class = VimeoPlayer;
+		/* keep references for compiler */
+		private static const PLAYER_TYPES:Array = [VimeoPlayer, MoogaloopWrapper, MoogaloverWrapper];
+		
 		public function VimeoSrtPlayer()
-		{ 		
+		{ 		 
 			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);
-			config =  new ConfigXML(loaderInfo);
+			params =  new Params(loaderInfo);
+			registerClassAlias('MoogaloverWrapper', org.mindpirates.video.vimeo.MoogaloverWrapper);
 		}
 		
-		private function handleAddedToStage(e:Event):void
+		internal function handleAddedToStage(e:Event):void
 		{    
 			if (ExternalInterface.available) {
 				js = new WebsubsJsInterface();
-			}  
-			player = new VimeoPlayer(loaderInfo, stage.stageWidth, stage.stageHeight, js);//new VimeoPlayer(loaderInfo, stage.stageWidth, stage.stageHeight, js); 
+			}   
+			if (params.playerClass) {
+				PlayerClass = getClassByAlias(params.playerClass); 
+			}
+			player = new PlayerClass(loaderInfo, stage.stageWidth, stage.stageHeight, js);//new VimeoPlayer(loaderInfo, stage.stageWidth, stage.stageHeight, js); 
 			player.addEventListener(VideoEvent.PLAYER_LOADED, handlePlayerLoaded, false, 0, true); 
 			addChild(player as DisplayObject); 
 			
@@ -65,9 +75,9 @@ package org.mindpirates.websubs
 			}
 		}
 		private function handlePlayerLoaded(e:Event):void
-		{        
+		{         
 			subtitles = new SubtitlesLayer(player);
-			subtitles.init( config );
+			subtitles.init( params );
 			addChild(subtitles);
 			js.initCallbacks(this);
 		}  

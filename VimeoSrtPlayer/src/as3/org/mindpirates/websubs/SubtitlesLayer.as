@@ -29,9 +29,6 @@ package org.mindpirates.websubs
 	import org.mindpirates.video.VideoEvent;
 	import org.mindpirates.video.interfaces.IVideoPlayer;
 	import org.mindpirates.video.vimeo.MoogaloopWrapper;
-	import org.mindpirates.websrt.xml.ConfigXML;
-	import org.mindpirates.websrt.xml.LocalizationXML;
-	import org.mindpirates.websrt.xml.XMLProxy;
 	import org.osflash.thunderbolt.Logger;
 	 
 	/** 
@@ -48,7 +45,7 @@ package org.mindpirates.websubs
 		public var currentSubtitleLine:SubtitleLine;		 
 		public var currentScale:Number = 1;  
 		public var localization:LocalizationXML;
-		private var _config:ConfigXML;		
+		private var _config:Params;		
 		private var _text:String;
 		private var originalSize:Object;
 		private var list:SubtitlesList;
@@ -67,7 +64,7 @@ package org.mindpirates.websubs
 			mouseChildren = false;
 			mouseEnabled = false;
 		} 
-		public function init(config:ConfigXML):void
+		public function init(config:Params):void
 		{ 
 			_config = config;
 			//Logger.info('\n----------------- DEBUGGING VideoManager ERROR --------------------------\nconfig: '+config)
@@ -92,7 +89,7 @@ package org.mindpirates.websubs
 			initLocalization(); 
 		}
 		
-		public function get config():ConfigXML
+		public function get config():Params
 		{
 			return _config;
 		}

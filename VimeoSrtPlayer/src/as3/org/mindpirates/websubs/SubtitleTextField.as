@@ -10,7 +10,6 @@ package org.mindpirates.websubs
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
 	
-	import org.mindpirates.websrt.xml.ConfigXML;
 	
 	/** 
 	 * @author Jovica Aleksic
@@ -19,7 +18,7 @@ package org.mindpirates.websubs
 	{ 
 		private var _fontSize:Number = 10;
 		
-		public function SubtitleTextField(config:ConfigXML)
+		public function SubtitleTextField(config:Params)
 		{
 			super();
 			

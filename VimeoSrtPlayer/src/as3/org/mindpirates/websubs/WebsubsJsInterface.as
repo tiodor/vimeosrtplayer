@@ -84,7 +84,7 @@ package org.mindpirates.websubs
 			try {
 				//Logger.info('fireEvent('+event.type+')')
 				ExternalInterface.call('onPlayerEvent', event.type, event); 
-				ExternalInterface.call('onSrtPlayerEvent', player.config.swfId, event.type, event);
+				ExternalInterface.call('onSrtPlayerEvent', player.params.swfId, event.type, event);
 			}
 			catch (e:Error) {
 				Logger.info('couldnt invoke onEvent');
