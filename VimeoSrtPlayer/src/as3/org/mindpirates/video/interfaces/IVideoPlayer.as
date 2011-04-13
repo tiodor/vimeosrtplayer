@@ -4,8 +4,8 @@ package org.mindpirates.video.interfaces
 	import flash.events.IEventDispatcher;
 	import flash.media.Video;
 	
-	import org.mindpirates.websubs.WebsubsJsInterface;
 	import org.mindpirates.websubs.SubtitlesLayer;
+	import org.mindpirates.websubs.WebsubsJsInterface;
 
 	public interface IVideoPlayer extends IEventDispatcher
 	{ 
@@ -33,6 +33,7 @@ package org.mindpirates.video.interfaces
 		function get fullscreenMode():Boolean;
 		function set fullscreenMode(value:Boolean):void;
 						
+		function setSize(w:Number,h:Number):void;
 		function get playerWidth():Number; 
 		
 		function get playerHeight():Number; 

@@ -25,12 +25,7 @@ package nl.inlet42.data.subtitles {
 							} else {
 								
 								translation.start = stringToSeconds(timecodes[0]);
-								translation.end = stringToSeconds(timecodes[1]);
-								translation.duration = translation.end - translation.start;
-								
-								if(translation.duration < 0) {
-									trace("Translation error, something wrong with the start or end time");							
-								}
+								translation.end = stringToSeconds(timecodes[1]);  
 							}
 						} else { 
 							//translation line

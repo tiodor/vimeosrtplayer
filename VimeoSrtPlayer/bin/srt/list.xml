@@ -1,6 +1,7 @@
 <?xml version="1.0"?> 
-<subtitles defaultLang="fre">
-	<srt lang="eng">srt/0803_problema_eng_complete.srt</srt>  
-	<srt lang="ger">srt/1603_de_lars.srt</srt> 
-	<srt lang="fre">srt/french_1503.srt</srt> 
+<subtitles defaultLang="default">
+	<srt lang="default" title="Default" description="English (On foreign languages only)">srt/problema_eng_basic_0704.srt</srt>  
+	<srt lang="eng" title="English">srt/0803_problema_eng_complete.srt</srt>  
+	<srt lang="ger" title="German">srt/1603_de_lars.srt</srt> 
+	<srt lang="fre" title="French">srt/french_1503.srt</srt> 
 </subtitles>

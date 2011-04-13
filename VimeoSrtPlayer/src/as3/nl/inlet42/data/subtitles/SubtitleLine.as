@@ -9,25 +9,32 @@ package nl.inlet42.data.subtitles {
 
 	public class SubtitleLine {
 		private var _text : String;
-		private var _start : Number;
-		private var _duration : Number;
+		private var _start : Number; 
 		private var _end : Number;
 		
-		public function SubtitleLine(inText : String = "",inStart : Number = 0,inDuration : Number = 0,inEnd : Number = 0) {
+		public function SubtitleLine(inText : String = "",inStart : Number = 0, inEnd : Number = 0) {
 			text = inText;
-			start = inStart;
-			duration = inDuration;
+			start = inStart; 
 			end = inEnd;
 		}
-		
+		public function toObject():Object
+		{
+			return {
+				text: _text,
+				start: _start,
+				end: _end
+			}
+		}
 		public static function create(obj:Object):SubtitleLine
 		{
-			var duration:Number = obj.duration || (SubtitleParser.stringToSeconds( obj.end ) - SubtitleParser.stringToSeconds( obj.start ))
-			return new SubtitleLine(obj.text, obj.start, duration, obj.end); 
+			var result:SubtitleLine = new SubtitleLine(obj.text, SubtitleParser.stringToSeconds(obj.start), SubtitleParser.stringToSeconds(obj.end))
+			//Logger.info('SubtitleLine.create()', obj, result);
+		//	var duration:Number = obj.duration || (SubtitleParser.stringToSeconds( obj.end ) - SubtitleParser.stringToSeconds( obj.start ))
+			return result; 
 		}
 		
 		public static function match(a:SubtitleLine, b:SubtitleLine):Boolean
-		{  
+		{  //Logger.info('match: ', a, b)
 			return a.start == b.start && 
 				a.end == b.end && 
 				StringUtils.removeExtraWhitespace(a.text) == StringUtils.removeExtraWhitespace(b.text); ;
@@ -56,18 +63,7 @@ package nl.inlet42.data.subtitles {
 			return _start;
 		}
 		 
-
-		
-		public function set duration(value:Number):void
-		{
-			_duration = roundToDigit(value,3);	
-		}
-		
-		public function get duration():Number
-		{
-			return _duration;
-		}
-		
+ 
 		
 		
 		public function set end(value:Number):void
@@ -91,9 +87,9 @@ package nl.inlet42.data.subtitles {
 		public function apply(source:SubtitleLine):void
 		{
 			start = source.start;
-			end = source.end;
-			duration = source.duration;
+			end = source.end; 
 			text = source.text;
+			//Logger.info('applied line', this)
 		}
 	}
 }

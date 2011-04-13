@@ -6,6 +6,8 @@ package org.mindpirates.websubs
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	
+	import org.osflash.thunderbolt.Logger;
+	
 	//import org.osflash.thunderbolt.Logger;
 	
 	[Event(name="complete", type="org.mindpirates.websubs.XMLProxy")]
@@ -102,7 +104,7 @@ package org.mindpirates.websubs
 		
 		public function onComplete( event:Event ):void
 		{ 
-			_xml = new XML( event.target.data );
+			_xml = new XML( event.target.data ); 
 			dispatchEvent( new Event( XMLProxy.COMPLETE ) );
 		}
 		

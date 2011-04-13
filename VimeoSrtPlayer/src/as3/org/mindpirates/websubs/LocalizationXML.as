@@ -39,16 +39,19 @@ package org.mindpirates.websubs
 		{
 			return data.srt.(@lang==lang).toString();
 		}
+		public function getTitleByLang(lang:String):String
+		{ 
+			return data.srt.(@lang==lang).@title;
+		}
+		public function getDescriptionByLang(lang:String):String
+		{ 
+			return data.srt.(@lang==lang).@description;
+		}
 		public function getFontByLang(lang:String):String
 		{
 			return data.srt.(@lang==lang).@font;
 		}
-		
-		public function get iconsPath():String
-		{
-			return data.@iconsPath;
-		}
-		
+		 
 		public function get defaultLang():String
 		{
 			return data.@defaultLang;

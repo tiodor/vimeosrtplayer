@@ -4,8 +4,7 @@ package nl.inlet42.data.subtitles
 	import com.chewtinfoil.utils.StringUtils;
 	
 	import flash.system.System;
-	
-	import org.osflash.thunderbolt.Logger;
+	 
 	 
 
 	/** 
@@ -24,6 +23,35 @@ package nl.inlet42.data.subtitles
 		public function get list():Array
 		{
 			return _data;
+		}
+		public function getLineAt(index:int):SubtitleLine
+		{
+			return _data[index];
+		}
+		public function getLineIndex(value:SubtitleLine):int
+		{
+			//Logger.info('getLineIndex()', value);
+			var result:int = -1; 
+			for (var i:int=0,t:int=_data.length; i<t; i++)  {
+				//Logger.info('-->', _data[i].start, value.start,_data[i].end, value.end )
+				if (_data[i].start == value.start && _data[i].end == value.end) {
+					result = i;
+				}
+			}
+			return result;
+			
+		}
+		public function getLineIndexByText(value:String):int
+		{
+			var result:int = -1; 
+			for (var i:int=0,t:int=_data.length; i<t; i++) 
+			{
+				var line:SubtitleLine = _data[i];
+				if (line.text == value) {
+					result = i;
+				}
+			}
+			return result;
 		}
 		public function getLineAtTime(time:Number):SubtitleLine
 		{ 

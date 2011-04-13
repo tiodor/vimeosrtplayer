@@ -13,7 +13,7 @@ package org.mindpirates.video
 		public static const STATUS:String = "vimeoStatus";
 		public static const PLAYER_LOADED:String = "vimeoPlayerLoaded";
 		public static const FULLSCREEN:String = "vimeoPlayerFullscreen";
-		
+		public static const PLAY:String = "play";
 		
 		public var currentTime:Number;
 		public var duration:Number;
