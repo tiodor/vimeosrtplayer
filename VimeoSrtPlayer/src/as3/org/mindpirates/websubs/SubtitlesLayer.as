@@ -1,40 +1,69 @@
 package org.mindpirates.websubs
 { 
 	import com.chewtinfoil.utils.StringUtils;
+	import com.greensock.TimelineLite;
+	import com.greensock.TweenLite;
 	
+	import de.derhess.video.vimeo.VimeoEvent;
+	import de.derhess.video.vimeo.VimeoPlayer;
+	import de.derhess.video.vimeo.VimeoPlayerUI;
+	import de.derhess.video.vimeo.VimeoPlayingState;
+	
+	import fl.controls.Button;
 	import fl.controls.ComboBox;
 	import fl.data.DataProvider;
+	import fl.events.ListEvent;
 	
+	import flash.display.DisplayObject;
+	import flash.display.Graphics;
 	import flash.display.Loader;
 	import flash.display.Sprite;
+	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
+	import flash.filters.DropShadowFilter;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
+	import flash.net.navigateToURL;
 	import flash.text.AntiAliasType;
+	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
+	import flash.ui.ContextMenu;
+	import flash.ui.ContextMenuItem;
 	import flash.utils.Timer;
+	import flash.utils.describeType;
 	
 	import nl.inlet42.data.subtitles.SubtitleLine;
 	import nl.inlet42.data.subtitles.SubtitleParser;
 	import nl.inlet42.data.subtitles.SubtitlesList;
 	
 	import org.mindpirates.utils.FontLoader;
-	import org.mindpirates.utils.ISO_639_2B;
 	import org.mindpirates.video.VideoEvent;
 	import org.mindpirates.video.interfaces.IVideoPlayer;
+	import org.mindpirates.video.interfaces.IVimeoPlayer;
 	import org.mindpirates.video.vimeo.MoogaloopWrapper;
+	import org.mindpirates.websubs.ui.ButtonDecorator;
+	import org.mindpirates.websubs.ui.EmbedScreen;
+	import org.mindpirates.websubs.ui.PlayerTooltip;
+	import org.mindpirates.websubs.ui.RoundedTextArea;
+	import org.mindpirates.websubs.ui.Screen;
+	import org.mindpirates.websubs.ui.ShareScreen;
+	import org.mindpirates.websubs.ui.TooltipOptions;
+	import org.mindpirates.websubs.ui.vimeo.sidedock.EmbedButton;
+	import org.mindpirates.websubs.ui.vimeo.sidedock.ShareButton;
+	import org.mindpirates.websubs.ui.vimeo.sidedock.SidedockButton;
 	import org.osflash.thunderbolt.Logger;
-	 
+	
+	
 	/** 
 	 * @author Jovica Aleksic
 	 */
-	  
+	
 	
 	[Event(name="complete",type="flash.events.Event")]
 	public class SubtitlesLayer extends Sprite
@@ -42,28 +71,36 @@ package org.mindpirates.websubs
 		public var combo:ComboBox;
 		public var textField:SubtitleTextField;
 		public var player:IVideoPlayer; 
-		public var currentSubtitleLine:SubtitleLine;		 
+		private var currentSubtitleLine:SubtitleLine;		 
 		public var currentScale:Number = 1;  
 		public var localization:LocalizationXML;
 		private var _config:Params;		
 		private var _text:String;
 		private var originalSize:Object;
-		private var list:SubtitlesList;
+		public var list:SubtitlesList;
 		private var timer:Timer;
 		
-		  
+		/* if hideCombo() was called before the list was loaded and the combo created, this flag will store TRUE so we can hide the combo after creation */
+		private var _hideCombo:Boolean;
+		
 		public function SubtitlesLayer(vimeoPlayer:IVideoPlayer)
 		{  
 			super();
-			 //  Logger.info('new SubtitlesLayer()')
+			//Logger.info('new SubtitlesLayer()')
 			player = vimeoPlayer;  
 			//Logger.info('player: '+player)
+			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);
 			player.addEventListener(VideoEvent.FULLSCREEN, handleFullscreenChange, false, 0, true); 
-			
+			player.addEventListener(VideoEvent.PLAY, handlePlaybackStart, false, 0, true);
 			originalSize = {width:player.playerWidth, height:player.playerHeight}; 
 			mouseChildren = false;
 			mouseEnabled = false;
 		} 
+		private function handleAddedToStage(e:Event):void
+		{
+			stage.addEventListener(Event.RESIZE, updateComboPosition, false, 0, true);
+			stage.addEventListener(Event.RESIZE, updateLayout, false, 0, true);
+		}
 		public function init(config:Params):void
 		{ 
 			_config = config;
@@ -78,22 +115,25 @@ package org.mindpirates.websubs
 			//Logger.info('(player as MoogaloopWrapper).videoManager: '+(player as MoogaloopWrapper).videoManager+', '+( (player as MoogaloopWrapper).videoManager is Sprite ))
 			//var videoManager:Sprite = (player as IVideoPlayer).videoManager as Sprite;
 			//Logger.info('videoManager: '+videoManager+', textfield: '+textField)
-				
+			
 			player.video.parent.addChild(textField);
 			//Logger.info('text attached');
 			if (config.srt) {
 				loadSrt(config.srt); 
-			}
+			} else
+				if (config.srtData) {
+					setSrtData(config.srtData);
+				}
 			
-			 
 			initLocalization(); 
+			
+			createScreens(); 
 		}
 		
 		public function get config():Params
 		{
 			return _config;
 		}
-		 
 		
 		
 		//-------------------------------------------------------------------------------------------
@@ -123,64 +163,212 @@ package org.mindpirates.websubs
 			var line:SubtitleLine = list.getLineAtTime( player.videoPosition )  
 			if (line) { 
 				if (line != currentSubtitleLine || forceTextRefresh) {
-					currentSubtitleLine = line;
-					text = line.text;
+					subtitleLine = line;
 					forceTextRefresh = false;
 				}
 			}
 			else if (currentSubtitleLine) { 
-				currentSubtitleLine = null; 
-				text = ""; 
+				subtitleLine = null; 
 			}
 			
 			if (_text) {  		
 				// update text position		
 				updateTextPosition();
 			} 
-			
+			/* //not so nice
+			if (((player as VimeoPlayer).ui as VimeoPlayerUI).playbar.alpha < 1) {
+				if (combo) {
+					combo.close();
+				}
+			}*/
+			updateComboPosition();
 		} 
-		 
+		//-------------------------------------------------------------------------------------------
+		//
+		// SCREENS
+		// 
+		//-------------------------------------------------------------------------------------------
+		public var screens:Array = [];
+		public var buttons:Array = [];
 		
+		public var currentScreen:Screen;
+		private function createScreens():void
+		{
+			var sidedock:Sprite = (player.ui as VimeoPlayerUI).sidedock;
+			var vimeoColor:uint = (player as VimeoPlayer).color;
+			
+			//----------------------------------
+			// share screen & button
+			//----------------------------------
+			
+			if (config.shareUrl) {
+				
+				var btnShare:ShareButton = new ShareButton(player as VimeoPlayer);   
+				parent.addChild( btnShare );
+				buttons.push(btnShare); 
+				btnShare.addEventListener(MouseEvent.CLICK, handleScreenButtonClick, false, 0, true);  
+				
+				var shareScreen:ShareScreen = new ShareScreen(this);
+				shareScreen.button = btnShare; 
+				shareScreen.addEventListener(Screen.HIDE, handleHideScreen, false, 0, true);
+				parent.addChild(shareScreen);
+				screens.push(shareScreen);
+				btnShare.screen = shareScreen;
+			}
+			
+			//----------------------------------
+			// embed screen & button
+			//----------------------------------
+			
+			if (config.embedUrl) {
+				var btnEmbed:EmbedButton = new EmbedButton(player as VimeoPlayer);   
+				parent.addChild( btnEmbed );
+				buttons.push(btnEmbed); 
+				btnEmbed.addEventListener(MouseEvent.CLICK, handleScreenButtonClick, false, 0, true);  
+				
+				var embedScreen:EmbedScreen = new EmbedScreen(this);
+				embedScreen.button = btnEmbed;
+				embedScreen.addEventListener(Screen.HIDE, handleHideScreen, false, 0, true);
+				parent.addChild(embedScreen);
+				screens.push(embedScreen);
+				btnEmbed.screen = embedScreen;
+			}
+			//----------------------------------
+			// layout
+			//----------------------------------
+			updateLayout();				
+		}
+		
+		//-------------------------------------------------------------------------------------------
+		//
+		// SOCIAL MEDIA BUTTONS
+		// 
+		//-------------------------------------------------------------------------------------------
+		
+		private function handlePlaybackStart(e:Event):void
+		{ 
+			var t:Timer = new Timer(200, 1);
+			t.addEventListener(TimerEvent.TIMER_COMPLETE, updateLayout, false, 0, true);
+			t.start();
+			
+			updateComboPosition();
+		}
+		private function handleScreenButtonClick(e:MouseEvent):void
+		{
+			// toggle only, if the button's screen is already being shown
+			if (currentScreen && currentScreen == e.target.screen) {
+				currentScreen.hide();
+				currentScreen = null;
+				return;
+			}
+			// otherwise hide any other screen
+			if (currentScreen) {
+				currentScreen.hide();
+			}
+			// then show requested screen 
+			e.target.screen.show();
+			currentScreen = e.target.screen;
+			updateLayout(); 
+		}
+		
+		/**
+		 * Deals positioning of the buttons.
+		 * Initially, the buttons are placed at the top right corner,
+		 * but once playbackstarts, the buttons are shifted down below the vimeo buttons in sidedock
+		 * and the buttons are actually moved into the sidedock so they can fade out with the rest of the player ui.
+		 */
+		private function updateLayout(e:Event=null):void
+		{  
+			 
+			// find the top position - dependng on whether the sidedock is visible or not
+			var ui:VimeoPlayerUI = (player.ui as VimeoPlayerUI);
+			var y:Number = 10; 
+			if (ui.sidedock.alpha) { 
+				for (var i:int=0; i<ui.sidedock.numChildren; i++) {
+					var child:DisplayObject = ui.sidedock.getChildAt(i); 
+					if (child.visible && buttons.indexOf(child) == -1 && (!buttons[0] || child.x == (buttons[0] as Sprite).x)) {
+						y += child.height+5;
+					}
+				} 
+			} 
+			// position the buttons below the top position
+			for (i=0; i<buttons.length; i++) {
+				var btn:Sprite = buttons[i] as Sprite;
+				btn.x = player.playerWidth - btn.width - 10;
+				btn.y = y + i*(btn.height+5); 
+				if (ui.sidedock.alpha) {
+					ui.sidedock.addChild(btn);
+				}
+			}
+			
+			// center the screen, if one is being shown
+			var s:Screen = this.currentScreen;
+			if (s) {
+				s.x = (player.playerWidth - s.width) / 2
+				s.y = (player.playerHeight - s.height) / 2 - 20;
+			} 
+			
+			updateComboPosition();
+		}
+		private function handleHideScreen(e:Event):void
+		{
+			if (e.target === currentScreen) {
+				currentScreen = null;	
+			}
+		}
 		//-------------------------------------------------------------------------------------------
 		//
 		// SUBTITLE TEXT HANDLING
 		// 
 		//-------------------------------------------------------------------------------------------
-		 
-		public function set text(value:String):void
+		
+		public function set subtitleLine(value:SubtitleLine):void
+		{
+			currentSubtitleLine = value; 
+			setText(value ? value.text : '');
+			
+			if (player.jsInterface) {
+				var event:JsEvent = new JsEvent(JsEvent.SUBTITLE_TEXT);
+				event.text = value ? _text : null;
+				event.index = value ? list.getLineIndex( value ) : null;
+				player.jsInterface.fireEvent(event);
+			}
+		}
+		public function get subtitleLine():SubtitleLine
+		{
+			return currentSubtitleLine;
+		}
+		private function setText(value:String):void
 		{ 
 			_text = value; 
 			
 			if (value) {
 				value = '<span class="subtitle">' + 
-					value.replace('\r\n','<br>')
-						.replace('\r','<br>')
-						.replace('\n','<br>')
-						.replace('<b>','<strong>')
-						.replace('</b>', '</strong>') 
+					value.replace(/\r\n/g,'<br>')
+					.replace(/\r/g,'<br>')
+					.replace(/\n/g,'<br>')
+					.replace(/<b>/g,'<strong>')
+					.replace(/<\/b>/g, '</strong>') 
 					+ '</span>'
 			} 
 			textField.htmlText = StringUtils.removeExtraWhitespace(value); 
 			updateTextPosition();
 			
 			
-			if (player.jsInterface) {
-				var event:JsEvent = new JsEvent(JsEvent.SUBTITLE_TEXT);
-				event.text = _text;
-				player.jsInterface.fireEvent(event);
-			}
 		} 
 		
 		public function get text():String
 		{
 			return _text;
 		}
-		 
+		
 		private function updateTextPosition():void
 		{  
 			var margin:Number = config.margin * currentScale + (config.dynpos ? (player.ui.playbar.alpha ? player.ui.playButton.height > config.margin * currentScale ? player.ui.playButton.height : 0 : 0) : 0);
 			textField.y = player.playerHeight - textField.textHeight*currentScale - margin; 
-			
+			//	textField.width = player.playerWidth;
+			//	textField.x = 0;	
+			//Logger.info('playerWidth: '+player.playerWidth+', fs: '+player.fullscreenMode+', pos: '+textField.x+','+textField.y+', size: '+textField.width+', '+textField.height) 
 		}
 		
 		
@@ -189,7 +377,7 @@ package org.mindpirates.websubs
 		// LOCALIZATION (Multiple languages)
 		// 
 		//-------------------------------------------------------------------------------------------
- 
+		
 		public function setLanguage(lang:String):void
 		{ 
 			var file:String = localization.getFileByLang(lang); 
@@ -207,6 +395,7 @@ package org.mindpirates.websubs
 					combo.selectedIndex = i;
 				}
 			}
+			updateComboPosition();
 		}
 		
 		public var currentLanguage:Object;
@@ -215,6 +404,7 @@ package org.mindpirates.websubs
 		{	
 			if (config.localization) { 
 				localization = new LocalizationXML();
+				localization.noCaching = true;
 				localization.addEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete, false, 0, true);
 				localization.addEventListener(XMLProxy.ERROR, handleLocalizationXmlError, false, 0, true); 
 				localization.loadXML(config.localization);
@@ -228,9 +418,10 @@ package org.mindpirates.websubs
 		}
 		
 		private function handleLocalizationXmlComplete(e:Event):void
-		{   
+		{    
 			createCombo();
 			updateComboPosition(); 
+			createContextMenuItems()
 			
 			if (config.lang) {
 				setLanguage(config.lang);
@@ -259,6 +450,138 @@ package org.mindpirates.websubs
 				player.jsInterface.fireEvent(event);
 			}
 		} 
+		
+		private var langTooltip:Sprite;
+		
+		private function handleComboTooltipMouseMove(e:MouseEvent):void
+		{
+			//Logger.info('targets '+e.target.y);
+			if (langTooltip) {
+				langTooltip.x = combo.x + combo.width + 7;
+				langTooltip.y = combo.y - (combo.height*(combo.dataProvider.length)) +  e.target.y;
+			}
+		} 
+		
+		private function removeComboTooltip(e:Event=null):void
+		{
+			try {
+				langTooltip.parent.removeChild(langTooltip);
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleComboTooltipMouseMove);
+				langTooltip = null;
+			}
+			catch (err:Error) {
+				
+			}
+		}
+		private function handleComboItemRollOver(e:ListEvent):void
+		{
+			var d:String = combo.dataProvider.getItemAt(Number(e.rowIndex.toString())).description;
+			if(d) {
+			 
+				removeComboTooltip();
+				
+				langTooltip = new Sprite();
+				
+				var pad:Number = 3;
+				var extraW:Number = 2;
+				var extraH:Number = 3;
+				var triHeight:Number = 7;
+				var triWidth:Number = 7;
+				var tf:TextField = new TextField();
+				tf.autoSize = TextFieldAutoSize.LEFT;
+				tf.embedFonts = true;
+				var tformat:TextFormat = new TextFormat();
+				tformat.font = new _UNI_05_53().fontName;
+				tformat.color = 0xffffff;
+				tformat.size = 8;
+				tf.defaultTextFormat = tformat;
+				tf.text = d;
+				tf.x = pad;
+				tf.y = pad;
+				 
+				var w:Number = tf.textWidth+pad*2+extraW
+				var h:Number = tf.textHeight+pad*2+extraH;
+				var g:Graphics = langTooltip.graphics;
+				g.clear(); 
+				g.beginFill((player as VimeoPlayer).color, 0.95);
+				g.drawRoundRect(0,0,w,h,10,10);
+				g.moveTo(0, h/2 - triHeight/2);
+				g.lineTo(-triWidth, h/2);
+				g.lineTo(0, h/2 + triHeight/2);
+				g.endFill();
+				
+				langTooltip.alpha = 0;
+				langTooltip.addChild(tf);
+				langTooltip.x = e.target.x + e.target.width + triWidth;
+				langTooltip.y = parent.mouseY;
+				
+				
+				var t:Timer = new Timer(250, 1);
+				t.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void {
+					if (langTooltip) {
+						TweenLite.to(langTooltip, 0.1, {alpha: 1});	
+					}
+				}, false, 0, true);
+				t.start();
+				
+				langTooltip.filters = [new DropShadowFilter(4,45,0,0.5)];
+				parent.addChild(langTooltip); 
+				stage.addEventListener(MouseEvent.MOUSE_MOVE, handleComboTooltipMouseMove, false, 0, true);
+			}
+			else {
+				removeComboTooltip();
+			}
+			
+			
+
+			
+		}
+ 
+		private function handleComboItemRollOut(e:ListEvent):void
+		{
+			if (langTooltip && langTooltip.parent) { 
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleComboTooltipMouseMove);
+				langTooltip.parent.removeChild(langTooltip)
+				langTooltip = null;
+			}
+		}
+		
+		private var menuItems:Array;
+		private function createContextMenuItems():void
+		{ 
+			menuItems = [];
+			var cm:ContextMenu = (player as VimeoPlayer).moogaloop.contextMenu; 
+			for each (var lang:String in localization.languages) { 
+				var obj:Object = {
+					caption: 'Download subtitles: '+localization.getTitleByLang(lang),
+						url: localization.getFileByLang(lang)
+				} 
+				if (localization.getDescriptionByLang(lang)) {
+					obj.caption += ' - '+localization.getDescriptionByLang(lang);
+				}
+				menuItems.push(obj);
+				var cmi:ContextMenuItem = new ContextMenuItem(obj.caption);
+				cmi.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, handleContextMenuClick);
+				cm.customItems.push(cmi);
+			}
+			/*for each (var item:Object in menuItems) { 
+			var cmi:ContextMenuItem = new ContextMenuItem(item.caption);				
+			cmi.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, handleContextMenuClick);
+			cm.customItems.splice(0,0,cmi)
+			} 
+			*/
+			(player as VimeoPlayer).moogaloop.contextMenu = cm;
+		}
+		private function handleContextMenuClick(e:ContextMenuEvent):void
+		{
+			for each (var item:Object in menuItems) {
+				if (item.caption == e.target.caption) {
+					var req:URLRequest = new URLRequest(item.url);
+					Logger.info('download srt', item.url);
+					navigateToURL(req, '_blank');
+				}
+			}
+		}
 		private function createCombo():void
 		{
 			combo = new ComboBox();  
@@ -267,9 +590,12 @@ package org.mindpirates.websubs
 			combo.height = 20; 
 			combo.setStyle('textPadding',2); 
 			
+			combo.addEventListener(ListEvent.ITEM_ROLL_OVER, handleComboItemRollOver, false, 0, true);
+			combo.addEventListener(ListEvent.ITEM_ROLL_OUT, handleComboItemRollOut, false, 0, true);
+			combo.addEventListener(Event.CLOSE, removeComboTooltip, false, 0, true);
 			var format:TextFormat = new TextFormat()
 			format.color = 0xFFFFFF;
-			format.bold = true;
+			format.bold = false;
 			format.font = new _UNI_05_53().fontName; 
 			format.size = 8;
 			
@@ -281,26 +607,31 @@ package org.mindpirates.websubs
 			combo.textField.setStyle("textFormat",format);
 			combo.textField.setStyle("antiAliasType",AntiAliasType.NORMAL);
 			combo.textField.textField.autoSize = TextFieldAutoSize.LEFT;
-			
-			var dp:Array = [{label:'no subtitle',lang:null}];
-			for each (var lang:String in ISO_639_2B._codes) {  
-				if (localization.languages.indexOf( lang ) != -1) {
-					var name:String = ISO_639_2B.getNameByCode(lang); 
-					var item:Object = {
-						'name': name,
-						'lang': lang,			
-						'label': name		
-					}
-					dp.push(item); 
+			var need_tooltip:Array = [];
+			var dp:Array = [{label:'no subtitles',lang:null}]; 
+			for each (var lang:String in localization.languages) {
+				var name:String = localization.getTitleByLang(lang);
+				var item:Object = {
+					'lang': lang,			
+					'name': name,
+					'label': name,
+					'description': localization.getDescriptionByLang(lang)
+				}
+				dp.push(item); 
+				if (localization.getDescriptionByLang(lang)) {
+					need_tooltip.push( name );
 				}
 			}
+			  
 			combo.dataProvider = new DataProvider(dp);
 			player.ui.playbar.addChild(combo);
-			
+			 
 			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LANGUAGE_MENU_CREATED); 
 				player.jsInterface.fireEvent(event);
-			}
+			} 
+			//Logger.info('config.menu: '+config.menu+', _hideCombo: '+_hideCombo)
+			updateComboPosition();
 			
 		}  
 		public function disableCombo():void
@@ -311,6 +642,8 @@ package org.mindpirates.websubs
 			combo.mouseEnabled = false;
 			combo.mouseChildren = false;
 			combo.alpha = 0.7;
+			removeComboTooltip();
+			updateComboPosition();
 		}
 		public function enableCombo():void
 		{
@@ -320,12 +653,28 @@ package org.mindpirates.websubs
 			combo.mouseEnabled = true;
 			combo.mouseChildren = true;
 			combo.alpha = 1;
+			updateComboPosition();
 		}
+		
+		
+		public function set hideCombo(value:Boolean):void
+		{
+			_hideCombo = value;
+			if (combo) {
+				combo.visible = false;
+				removeComboTooltip();
+			}
+		}
+		public function get hideCombo():Boolean
+		{
+			return _hideCombo;
+		}
+		
 		private function handleComboChange(e:Event):void
 		{  
-			 
+			
 			var lang:String = combo.selectedItem.lang;
-			var langName:String = ISO_639_2B.getNameByCode(lang);
+			var langName:String = combo.selectedItem.title; //ISO_639_2B.getNameByCode(lang);
 			var srt:String = localization.getFileByLang(lang);
 			var font:String = localization.getFontByLang(lang);
 			
@@ -335,16 +684,20 @@ package org.mindpirates.websubs
 				event.langName = langName;
 				player.jsInterface.fireEvent(event);
 			}
-			 
-			loadSrt(srt)
-			loadFont(font)
+			
+			loadSrt(srt);
+			loadFont(font);
 			
 		} 
-		private function updateComboPosition():void
+		private function updateComboPosition(e:Event=null):void
 		{
 			if (combo) { 
 				combo.x = player.ui.playButton.x;
 				combo.y = player.playerHeight - combo.height - player.ui.playButton.height - 20;
+				if (!config.menu || _hideCombo) {
+					combo.visible = false;
+					combo.y = -1000;
+				}
 			}
 		}
 		
@@ -361,7 +714,7 @@ package org.mindpirates.websubs
 			loader.loadFont( url );
 			*/
 		}
-			
+		
 		
 		
 		//-------------------------------------------------------------------------------------------
@@ -370,13 +723,13 @@ package org.mindpirates.websubs
 		// 
 		//-------------------------------------------------------------------------------------------
 		
-		 
+		
 		public var currentSrtUrl:String;
 		public function loadSrt(file:String):void
 		{ 
 			if (!file) {
 				timer.stop();
-				text = "";
+				subtitleLine = null;
 				list = null;
 				return;
 			}
@@ -402,7 +755,14 @@ package org.mindpirates.websubs
 		}
 		private function handleSrtLoaded(e:Event):void
 		{ 
-			var lines:Array = SubtitleParser.parseSRT( e.target.data.toString() );
+			var srt_data:String = e.target.data.toString();
+			setSrtData(srt_data);
+			
+		}
+		public function setSrtData(value:String):void
+		{
+			
+			var lines:Array = SubtitleParser.parseSRT( value );
 			list = new SubtitlesList(lines, currentSrtUrl);			
 			timer.start(); 			
 			dispatchEvent( new Event( Event.COMPLETE ) ); 
@@ -418,20 +778,18 @@ package org.mindpirates.websubs
 			}
 		}
 		
-		 
 		public function changeLine(oldLine:SubtitleLine, newLine:SubtitleLine):void
-		{
-			Logger.info('-------------------- CHANGE LINE -----------------------------');
+		{ 
 			for each (var line:SubtitleLine in list.list) {
 				if (SubtitleLine.match(oldLine, line)) { 
-					Logger.info('------------------------------------------------------------');
-					Logger.info('\nCHANGE LINE:'); 
-					Logger.info('\nold line: ',oldLine);
-					Logger.info('\nnew line: ',newLine);  
+					//Logger.info('found match!', line, newLine)
+					//Logger.info('------------------------------------------------------------'); 
+					//Logger.info('\nold line: ',oldLine);
+					//Logger.info('\nnew line: ',newLine);  
 					line.apply(newLine);
 					forceTextRefresh = true;
 				}
-			}
+			} 
 		}
 		
 		public function parseSrt(file:String=null, jsInterfaceHandler:String=null):String

@@ -23,6 +23,12 @@ package de.derhess.video.vimeo
 		private var _vimeo_logo:SimpleButton; // :BrandingButton
 		private var _timeline:Sprite; // :Timeline
 		private var _volumeSlider:Sprite; // :Volume
+		
+		
+		
+		private var _sidedock:Sprite;
+		private var _screen:Sprite;
+		
 		public function VimeoPlayerUI(player:VimeoPlayer)
 		{
 			_playbar = player.moogaloop.getChildByName('playbar');
@@ -32,6 +38,35 @@ package de.derhess.video.vimeo
 			_vimeo_logo = _playbar.vimeo_logo;
 			_timeline = _playbar.timeline;
 			_volumeSlider = _playbar.volume;
+			
+			for (var i:int=0; i<player.moogaloop.numChildren; i++) {
+				var obj:DisplayObject = player.moogaloop.getChildAt(i);
+				//Logger.info(obj.toString())
+				switch( obj.toString() ) {
+					case '[object Sidedock]':
+						_sidedock = obj as Sprite;
+						break;
+					case '[object Screen]':
+						_screen = obj as Sprite;
+						break;
+				} 
+			}
+		}
+		public function get screen():Sprite
+		{
+			return _screen;
+		}
+		public function get sidedock():Sprite
+		{
+			return _sidedock;
+		} 
+		public function get shareButton():Sprite
+		{
+			return (_sidedock as Object).share_button;		
+		}
+		public function get embedButton():Sprite
+		{
+			return (_sidedock as Object).embed_button;		
 		}
 		public function get fullscreenButton():DisplayObject
 		{

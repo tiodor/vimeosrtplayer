@@ -8,6 +8,7 @@ package org.mindpirates.websubs
 		public static const SRT_ERROR:String = "srtError";
 		public static const SRT_LOADED:String = "srtLoaded";
 		public static const FULLSCREEN_CHANGED:String = "fullscreenChanged";
+		public static const RESIZE:String = "resize";
 		public static const LOAD_LOCALIZATION:String = "loadLocalization";
 		public static const LOCALIZATION_ERROR:String = "localizationError";
 		public static const LOCALIZATION_LOADED:String = "localizationLoaded";
@@ -31,7 +32,9 @@ package org.mindpirates.websubs
 		public var volume:Number;
 		public var position:Number;
 		public var text:String;
-		
+		public var index:int;
+		public var width:Number;
+		public var height:Number;
 		public function JsEvent(name:String)
 		{
 			type = name;

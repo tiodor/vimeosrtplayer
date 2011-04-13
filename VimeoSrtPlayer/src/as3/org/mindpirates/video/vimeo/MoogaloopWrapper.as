@@ -379,7 +379,7 @@ package org.mindpirates.video.vimeo
 		 * @param	w width
 		 * @param	h height
 		 */
-		public function setSize(w:int, h:int):void {  
+		public function setSize(w:Number, h:Number):void {  
 			this.setDimensions(w, h);  
 			Logger.info('1. setSize('+w+', '+h+')')
 				try {

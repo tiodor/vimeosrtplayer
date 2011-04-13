@@ -22,6 +22,11 @@ package de.derhess.video.vimeo
 		public static const STATUS:String = "vimeoStatus";
 		public static const PLAYER_LOADED:String = "vimeoPlayerLoaded";
 		public static const FULLSCREEN:String = "vimeoPlayerFullscreen";
+		public static const RESIZE:String = "vimeoPlayerResize";
+		
+		public static const PLAY:String = "vimeoPlay";
+		
+		public static const SHOW_SHARE_SCREEN:String = "vimeoShowShareScreen";
         //--------------------------------------------------------------------------
         //
         //  Initialization

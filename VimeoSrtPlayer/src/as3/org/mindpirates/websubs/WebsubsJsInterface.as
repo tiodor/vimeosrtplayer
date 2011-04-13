@@ -20,6 +20,7 @@ package org.mindpirates.websubs
 		{
 			player = srtPlayer;
 			ExternalInterface.addCallback('loadSrt', loadSrt);
+			ExternalInterface.addCallback('setSrtData', setSrtData);
 			ExternalInterface.addCallback('parseSrt', parseSrt);
 			ExternalInterface.addCallback('changeLine', changeLine);
 			ExternalInterface.addCallback('play', player.player.play);
@@ -37,10 +38,22 @@ package org.mindpirates.websubs
 			
 			ExternalInterface.addCallback('getCurrentSrt', getCurrentSrt);
 			
+			ExternalInterface.addCallback('getCurrentLine', getCurrentLine);
+			
 			ExternalInterface.addCallback('setFontSize', setFontSize);
 			ExternalInterface.addCallback('getFontSize', getFontSize);
+			ExternalInterface.addCallback('setFontMargin', setFontMargin);
+			ExternalInterface.addCallback('getFontMargin', getFontMargin);
 			ExternalInterface.addCallback('isPlaying', isPlaying);
 			 			
+			
+			ExternalInterface.addCallback('setWidth', setWidth);
+			ExternalInterface.addCallback('getWidth', getWidth);
+			ExternalInterface.addCallback('setHeight', setHeight);
+			ExternalInterface.addCallback('getHeight', getHeight);
+			ExternalInterface.addCallback('setSize', setSize);
+			ExternalInterface.addCallback('getSize', getSize);
+			
 			initJsAPI();
 		} 
 		private function initJsAPI():void
@@ -63,6 +76,10 @@ package org.mindpirates.websubs
 		{
 			Logger.info('type: '+type+', handler: '+handler);
 		}
+		private function setSrtData(value:String):void
+		{
+			
+		}
 		private function loadSrt(file:String):void
 		{
 			Logger.info('loadSrt('+file+')')
@@ -74,6 +91,7 @@ package org.mindpirates.websubs
 		} 
 		private function changeLine(oldLine:Object, newLine:Object):void
 		{ 
+			//Logger.info('changeLine', oldLine, newLine);
 			player.subtitles.changeLine(SubtitleLine.create(oldLine), SubtitleLine.create(newLine));
 		}
 		public function fireEvent(event:JsEvent):void
@@ -96,9 +114,12 @@ package org.mindpirates.websubs
 			if (hasLanguageMenu()) {
 				player.subtitles.combo.visible = false;
 			}
+			else {
+				player.subtitles.hideCombo = true;
+			}
 		}
 		public function showLanguageMenu():void
-		{
+		{ 
 			if (hasLanguageMenu()) {
 				player.subtitles.combo.visible = true;
 			}
@@ -134,6 +155,47 @@ package org.mindpirates.websubs
 		private function isPlaying():Boolean
 		{
 			return player.player.isPlaying;
+		}
+		private function getFontMargin():Number
+		{
+			return player.subtitles.config.margin;
+		}
+		private function setFontMargin(value:Number):void
+		{
+			player.subtitles.config.setMargin( value );
+		}  
+		private function getCurrentLine():Object
+		{
+			var line:SubtitleLine = player.subtitles.subtitleLine;
+			var pos:int = player.subtitles.list.getLineIndex(line);
+			var result:Object = line.toObject()
+			result.index = pos;
+			return result ;
+		}
+		private function setWidth(value:Number):void
+		{
+			player.player.setSize(value, player.player.playerHeight);
+		}
+		private function getWidth():Number
+		{
+			return player.player.playerWidth;
+		}
+		private function setHeight(value:Number):void
+		{
+			player.player.setSize(player.player.playerWidth, value);
+		}
+		private function getHeight():Number
+		{
+			return player.player.playerHeight;
+		}
+		private function setSize(w:Number, h:Number):void
+		{
+			//Logger.info('--> set size: ', w, h);
+			player.player.setSize(Number(w), Number(h));
+		}
+		private function getSize():Array
+		{
+			return [player.player.playerWidth, player.player.playerHeight];
 		}
 		
 	}
