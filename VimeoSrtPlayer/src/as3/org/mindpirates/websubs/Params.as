@@ -36,7 +36,7 @@ package org.mindpirates.websubs
 		public function get margin():Number
 		{
 			if (!_data.srtMargin) {
-				return 10;
+				return 20;
 			}
 			return Number(_data.srtMargin);
 		}

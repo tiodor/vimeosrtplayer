@@ -47,7 +47,7 @@ package org.mindpirates.websubs
 		private static const PLAYER_TYPES:Array = [VimeoPlayer, MoogaloopWrapper, MoogaloverWrapper];
 		
 		private var menuItems:Array = [
-			{caption:'VimeoSrtPlayer beta', url:'http://code.google.com/p/vimeosrtplayer'}
+			{caption:'VimeoSrtPlayer beta', url:'http://code.google.com/p/vimeosrtplayer', separatorBefore: true}
 		];
 		
 		public function VimeoSrtPlayer()
@@ -99,7 +99,8 @@ package org.mindpirates.websubs
 			
 			var cm:ContextMenu = new ContextMenu(); //(player as VimeoPlayer).moogaloop.contextMenu; 
 			for each (var item:Object in menuItems) { 
-				var cmi:ContextMenuItem = new ContextMenuItem(item.caption);				
+				var cmi:ContextMenuItem = new ContextMenuItem(item.caption);	
+				cmi.separatorBefore = item.separatorBefore;
 				cmi.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, handleContextMenuClick);
 				cm.customItems.splice(0,0,cmi)
 			} 

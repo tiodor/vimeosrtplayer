@@ -1,6 +1,6 @@
 <?xml version="1.0"?> 
 <subtitles defaultLang="def">
-	<srt lang="def" title="Default" description="English, on foreign languages only">srt/problema_eng_basic_1304.srt</srt>  
+	<srt lang="def" title="Default" description="English (On foreign languages only)">srt/problema_eng_basic_1304.srt</srt>  
 	<srt lang="eng" title="English">srt/0803_problema_eng_complete.srt</srt>  
 	<srt lang="ger" title="German">srt/1603_de_lars.srt</srt> 
 	<srt lang="fre" title="French">srt/french_1503.srt</srt> 
