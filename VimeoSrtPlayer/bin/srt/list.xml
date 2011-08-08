@@ -4,4 +4,6 @@
 	<srt lang="eng" title="English">srt/0803_problema_eng_complete.srt</srt>  
 	<srt lang="ger" title="German">srt/1603_de_lars.srt</srt> 
 	<srt lang="fre" title="French">srt/french_1503.srt</srt> 
+	<srt lang="jap" title="Japanese" font="Cyberbit" fontSize="25">srt/problema_eng_0803_JP.srt</srt> 
+	<srt lang="chn" title="Chinese" font="Cyberbit" fontSize="25">srt/problema_ZH_lz_lektoriert_final.srt</srt> 
 </subtitles>

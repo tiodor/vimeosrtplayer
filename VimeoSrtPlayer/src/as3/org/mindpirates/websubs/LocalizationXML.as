@@ -51,6 +51,10 @@ package org.mindpirates.websubs
 		{
 			return data.srt.(@lang==lang).@font;
 		}
+		public function getFontSizeByLang(lang:String):Number
+		{
+			return Number(data.srt.(@lang==lang).@fontSize);
+		}
 		 
 		public function get defaultLang():String
 		{

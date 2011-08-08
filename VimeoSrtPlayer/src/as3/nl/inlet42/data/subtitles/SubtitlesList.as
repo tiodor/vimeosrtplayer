@@ -30,14 +30,15 @@ package nl.inlet42.data.subtitles
 		}
 		public function getLineIndex(value:SubtitleLine):int
 		{
-			//Logger.info('getLineIndex()', value);
+			trace('getLineIndex()', value);
 			var result:int = -1; 
 			for (var i:int=0,t:int=_data.length; i<t; i++)  {
-				//Logger.info('-->', _data[i].start, value.start,_data[i].end, value.end )
+				//trace('-->', _data[i].start, value.start,_data[i].end, value.end )
 				if (_data[i].start == value.start && _data[i].end == value.end) {
 					result = i;
 				}
 			}
+			trace('--> '+result);
 			return result;
 			
 		}
@@ -55,6 +56,7 @@ package nl.inlet42.data.subtitles
 		}
 		public function getLineAtTime(time:Number):SubtitleLine
 		{ 
+			//trace('getLineAtTime('+time+')')
 			var result:SubtitleLine; 
 			for (var i:int=0,t:int=_data.length; i<t; i++) 
 			{
@@ -63,6 +65,7 @@ package nl.inlet42.data.subtitles
 					result = line;
 				}
 			}
+			//trace('--> '+result);
 			return result;
 		}
 		public function toJson():String
