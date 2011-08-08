@@ -17,10 +17,18 @@ package org.mindpirates.websubs
 	public class SubtitleTextField extends TextField
 	{ 
 		private var _fontSize:Number = 10;
-		
+		private var _fontName:String;
+		public static var defaultFontName:String;
+		public static var defaultFontSize:Number;
 		public function SubtitleTextField(config:Params)
 		{
 			super();
+			
+			defaultFontName = new _DejaVu().fontName;
+			defaultFontSize = config.fontSize;
+			
+			_fontName = defaultFontName;
+			_fontSize = defaultFontSize;
 			
 			var textFormat:TextFormat = new TextFormat();
 			textFormat.align = TextFormatAlign.CENTER; 
@@ -33,9 +41,12 @@ package org.mindpirates.websubs
 			filters = [new DropShadowFilter(2,45,0,0.5,2,2), new GlowFilter(0,1,3,3,4)]; 
 			
 			wordWrap = true;
-			_fontSize = config.fontSize;
 			
 			updateStyles()    
+		}
+		public function get fontName():String
+		{
+			return _fontName;
 		}
 		private function updateStyles():void
 		{
@@ -45,18 +56,18 @@ package org.mindpirates.websubs
 			ss.setStyle('.subtitle', {
 				color:'#FFFFFF',
 				fontSize: _fontSize,
-				fontFamily:new _DejaVu().fontName
+				fontFamily: fontName
 			});
 			ss.setStyle('i', {
 				color:'#FFFFFF',
 				fontSize: _fontSize,
-				fontFamily:new _DejaVuOblique().fontName
+				fontFamily: fontName
 			});
 			ss.setStyle('strong', {
 				color:'#FFFFFF',
 				fontSize: _fontSize,
 				fontWeight: 'bold',
-				fontFamily:new _DejaVuBold().fontName,
+				fontFamily: fontName,
 				display: 'inline'
 			});  
 			
@@ -86,6 +97,12 @@ package org.mindpirates.websubs
 				matrix.scale( value, value );
 			}
 			transform.matrix = matrix;
+		}
+		public function set font(name:String):void
+		{
+			_fontName = name;
+			trace(this, 'set font', name)
+			updateStyles();
 		}
 	}
 }

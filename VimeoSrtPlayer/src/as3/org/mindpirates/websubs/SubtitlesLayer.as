@@ -671,6 +671,8 @@ package org.mindpirates.websubs
 					'lang': lang,			
 					'name': name,
 					'label': name,
+					'font': localization.getFontByLang(lang),
+					'fontSize': localization.getFontSizeByLang(lang),
 					'description': localization.getDescriptionByLang(lang)
 				}
 				dp.push(item); 
@@ -732,7 +734,20 @@ package org.mindpirates.websubs
 			var lang:String = combo.selectedItem.lang;
 			var langName:String = combo.selectedItem.title; //ISO_639_2B.getNameByCode(lang);
 			var srt:String = localization.getFileByLang(lang);
-			var font:String = localization.getFontByLang(lang);
+			
+			
+			
+			var font:String = combo.selectedItem.font;	 
+			switch (font) {
+				case "Cyberbit":
+					font = new _Cyberbit().fontName;
+					break;
+				default:
+					font = SubtitleTextField.defaultFontName;
+			}			
+			var fontSize:Number = combo.selectedItem.fontSize || SubtitleTextField.defaultFontSize;	
+			textField.font = font 
+			textField.fontSize = fontSize;
 			
 			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LANGUAGE_CHANGED);
@@ -741,8 +756,8 @@ package org.mindpirates.websubs
 				player.jsInterface.fireEvent(event);
 			}
 			
-			loadSrt(srt);
-			loadFont(font);
+			loadSrt(srt); 
+			
 			
 		} 
 		private function updateComboPosition(e:Event=null):void
@@ -764,13 +779,16 @@ package org.mindpirates.websubs
 		//-------------------------------------------------------------------------------------------
 		
 		public function loadFont(url:String):void
-		{/*
+		{
+			textField.font = url;
+			
+			/*
 			var loader:FontLoader = new FontLoader();
 			addChild(loader)
 			loader.loadFont( url );
 			*/
 		}
-		
+		 
 		
 		
 		//-------------------------------------------------------------------------------------------
@@ -813,12 +831,13 @@ package org.mindpirates.websubs
 		{ 
 			var srt_data:String = e.target.data.toString();
 			setSrtData(srt_data);
-			
+			trace('srt loaded: '+currentSrtUrl)
 		}
 		public function setSrtData(value:String):void
 		{
 			
 			var lines:Array = SubtitleParser.parseSRT( value );
+			trace('parsed '+lines.length+' subtitle lines');
 			list = new SubtitlesList(lines, currentSrtUrl);			
 			timer.start(); 			
 			dispatchEvent( new Event( Event.COMPLETE ) ); 
