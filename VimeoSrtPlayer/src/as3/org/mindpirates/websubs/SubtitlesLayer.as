@@ -96,11 +96,15 @@ package org.mindpirates.websubs
 			mouseChildren = false;
 			mouseEnabled = false;
 		} 
+		
+		private var contextMenuVideoOverlay:Sprite;
 		private function handleAddedToStage(e:Event):void
 		{
 			stage.addEventListener(Event.RESIZE, updateComboPosition, false, 0, true);
-			stage.addEventListener(Event.RESIZE, updateLayout, false, 0, true);
+			stage.addEventListener(Event.RESIZE, updateLayout, false, 0, true); 
+			createContextMenuVideoOverlay();
 		}
+	
 		public function init(config:Params):void
 		{ 
 			_config = config;
@@ -183,6 +187,43 @@ package org.mindpirates.websubs
 			}*/
 			updateComboPosition();
 		} 
+		
+		
+		
+		//-------------------------------------------------------------------------------------------
+		//
+		// CONTEXTMENU VIDEO OVERLAY
+		// invisible layer above video
+		// 
+		//-------------------------------------------------------------------------------------------
+		/**
+		 * Creates an invisible layer above the video.
+		 * reason: ContextMenu fails when rightclicked over a video, Flash player bug (currently v10.2)
+		 * we put an invisible sprite over the video to avoid the bug
+		 */
+		private function createContextMenuVideoOverlay():void
+		{ 
+			var videoManager:Sprite = (player as VimeoPlayer).videoManager as Sprite; 
+			contextMenuVideoOverlay = new Sprite(); 
+			videoManager.addChild(contextMenuVideoOverlay);
+			updateContextMenuVideoOverlay();
+		}
+		/**
+		 * Resizes the invisible layer
+		 */
+		private function updateContextMenuVideoOverlay(e:Event=null):void
+		{
+			var g:Graphics = contextMenuVideoOverlay.graphics;
+			var w:Number = player.playerWidth;
+			var h:Number = player.playerHeight;
+			g.clear();
+			g.beginFill(0xff0000, 0);
+			g.drawRect(0,0,w,h);
+			contextMenuVideoOverlay.width = w;
+			contextMenuVideoOverlay.height = h;
+		}
+		
+		
 		//-------------------------------------------------------------------------------------------
 		//
 		// SCREENS
@@ -250,7 +291,7 @@ package org.mindpirates.websubs
 			var t:Timer = new Timer(200, 1);
 			t.addEventListener(TimerEvent.TIMER_COMPLETE, updateLayout, false, 0, true);
 			t.start();
-			
+ 
 			updateComboPosition();
 		}
 		private function handleScreenButtonClick(e:MouseEvent):void
@@ -309,6 +350,15 @@ package org.mindpirates.websubs
 			} 
 			
 			updateComboPosition();
+			updateContextMenuVideoOverlay();
+			
+			// bugfix / workaround: context menu listeners get lost after playback. 
+			var cm:ContextMenu = (player as VimeoPlayer).moogaloop.contextMenu;
+			for each (var item:ContextMenuItem in cm.customItems) { 
+				item.removeEventListener(ContextMenuEvent.MENU_ITEM_SELECT, handleContextMenuClick);
+				item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, handleContextMenuClick, false, 0, true); 
+			} 
+			 
 		}
 		private function handleHideScreen(e:Event):void
 		{
@@ -421,7 +471,6 @@ package org.mindpirates.websubs
 		{    
 			createCombo();
 			updateComboPosition(); 
-			createContextMenuItems()
 			
 			if (config.lang) {
 				setLanguage(config.lang);
@@ -431,6 +480,8 @@ package org.mindpirates.websubs
 			
 			localization.removeEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete);
 			localization.removeEventListener(XMLProxy.ERROR, handleLocalizationXmlError); 
+			
+			createContextMenuItems();
 			
 			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LOCALIZATION_LOADED);
@@ -549,20 +600,24 @@ package org.mindpirates.websubs
 		private var menuItems:Array;
 		private function createContextMenuItems():void
 		{ 
+			var cmItems:Array = [];
 			menuItems = [];
 			var cm:ContextMenu = (player as VimeoPlayer).moogaloop.contextMenu; 
 			for each (var lang:String in localization.languages) { 
 				var obj:Object = {
 					caption: 'Download subtitles: '+localization.getTitleByLang(lang),
-						url: localization.getFileByLang(lang)
+					url: localization.getFileByLang(lang)
 				} 
-				if (localization.getDescriptionByLang(lang)) {
-					obj.caption += ' - '+localization.getDescriptionByLang(lang);
-				}
+				if (localization.getDescriptionByLang(lang)) {obj.caption += ' - '+localization.getDescriptionByLang(lang);}
 				menuItems.push(obj);
+				
 				var cmi:ContextMenuItem = new ContextMenuItem(obj.caption);
-				cmi.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, handleContextMenuClick);
-				cm.customItems.push(cmi);
+				cmi.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, handleContextMenuClick, false, 0, true);
+				cmItems.push(cmi);
+			}
+			cmItems.reverse();
+			for each (var item:ContextMenuItem in cmItems) {
+				cm.customItems.splice(1, 0, item);
 			}
 			/*for each (var item:Object in menuItems) { 
 			var cmi:ContextMenuItem = new ContextMenuItem(item.caption);				
@@ -570,14 +625,15 @@ package org.mindpirates.websubs
 			cm.customItems.splice(0,0,cmi)
 			} 
 			*/
-			(player as VimeoPlayer).moogaloop.contextMenu = cm;
+			//(player as VimeoPlayer).moogaloop.contextMenu = cm;
 		}
 		private function handleContextMenuClick(e:ContextMenuEvent):void
 		{
+			//Logger.info('handleContextMenuClick');
 			for each (var item:Object in menuItems) {
 				if (item.caption == e.target.caption) {
 					var req:URLRequest = new URLRequest(item.url);
-					Logger.info('download srt', item.url);
+					//Logger.info('download srt', item.url);
 					navigateToURL(req, '_blank');
 				}
 			}
