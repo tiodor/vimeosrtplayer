@@ -82,8 +82,9 @@ package org.mindpirates.websubs
 		}
 		private function loadSrt(file:String):void
 		{
-			Logger.info('loadSrt('+file+')')
+			//Logger.info('loadSrt('+file+')')
 			player.subtitles.loadSrt(file);
+		
 		} 
 		private function parseSrt(file:String=null,callback:*=null):String
 		{

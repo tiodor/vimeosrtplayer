@@ -47,9 +47,13 @@ package org.mindpirates.websubs
 		{ 
 			return data.srt.(@lang==lang).@description;
 		}
-		public function getFontByLang(lang:String):String
+		public function getFontNameByLang(lang:String):String
 		{
-			return data.srt.(@lang==lang).@font;
+			return data.srt.(@lang==lang).@fontName;
+		}
+		public function getFontFileByLang(lang:String):String
+		{
+			return String(data.srt.(@lang==lang).@fontFile);
 		}
 		public function getFontSizeByLang(lang:String):Number
 		{

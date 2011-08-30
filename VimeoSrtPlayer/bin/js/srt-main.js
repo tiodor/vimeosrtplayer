@@ -6,7 +6,7 @@
 
 var defaultVimeoId = 17712557; // Old Fish Jazz band, Kevin Klein
 var defaultSrt = '';//'srt/example.srt';
-var defaultLocalization = "srt/list.xml?time="+new Date().getTime(); 
+var defaultLocalization = "srt/list_new.xml?time="+new Date().getTime(); 
 
 var swf_container_id = 'flashContent';
 var swf_id = 'VimeoSrtPlayer';

@@ -30,7 +30,7 @@ package nl.inlet42.data.subtitles
 		}
 		public function getLineIndex(value:SubtitleLine):int
 		{
-			trace('getLineIndex()', value);
+			//trace('getLineIndex()', value);
 			var result:int = -1; 
 			for (var i:int=0,t:int=_data.length; i<t; i++)  {
 				//trace('-->', _data[i].start, value.start,_data[i].end, value.end )
@@ -38,7 +38,7 @@ package nl.inlet42.data.subtitles
 					result = i;
 				}
 			}
-			trace('--> '+result);
+			//trace('--> '+result);
 			return result;
 			
 		}

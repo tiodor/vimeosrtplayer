@@ -1,5 +1,7 @@
 package org.mindpirates.websubs
 {    
+	import com.adobe.net.URI;
+	import com.asual.swfaddress.SWFAddress;
 	import com.greensock.layout.ScaleMode;
 	
 	import de.derhess.video.vimeo.VimeoPlayer;
@@ -49,7 +51,7 @@ package org.mindpirates.websubs
 		private var menuItems:Array = [
 			{caption:'VimeoSrtPlayer beta', url:'http://code.google.com/p/vimeosrtplayer', separatorBefore: true}
 		];
-		
+		 
 		public function VimeoSrtPlayer()
 		{ 		 
 			addEventListener(Event.ADDED_TO_STAGE, handleAddedToStage, false, 0, true);

@@ -1,0 +1,13 @@
+<?xml version="1.0"?> 
+<subtitles defaultLang="def">
+	<srt lang="def" title="Standard" description="English (On foreign languages only)">srt/problema_eng_basic_1304.srt</srt>  
+	<srt lang="por" title="Portuguese">srt/problema_eng_0803_BR.srt</srt>  
+	<srt lang="eng" title="English">srt/problema_eng_0803_EN.srt</srt>  
+	<srt lang="esp" title="Spanish">srt/problema_eng_0803_ES.srt</srt>
+	<srt lang="jap" title="Japanese" fontName="Bitstream Cyberbit" fontFile="./swf/font-Cyberbit-japanese.swf" fontSize="23">srt/problema_eng_0803_JP.srt</srt>  
+	<srt lang="fre" title="French">srt/problema_eng_1503_FR.srt</srt> 
+	<srt lang="arb" title="Arabic" fontName="Bitstream Cyberbit" fontFile="./swf/font-Cyberbit-arabic.swf" fontSize="23">srt/problema_eng_1803_ARB.srt</srt>
+	<srt lang="ger" title="German">srt/problema_eng_1803_DE.srt</srt>
+	<srt lang="chn" title="Chinese" fontName="Bitstream Cyberbit" fontFile="./swf/font-Cyberbit-chinese.swf" fontSize="23">srt/problema_ZH_lz_lektoriert_final.srt</srt> 
+</subtitles>
+ 
