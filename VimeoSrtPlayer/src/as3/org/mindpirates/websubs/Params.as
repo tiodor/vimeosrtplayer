@@ -10,6 +10,8 @@ package org.mindpirates.websubs
 	public class Params
 	{
 		private var _data:Object;
+		public const DEFAULT_MARGIN:Number = 50;
+		
 		public function Params(info:LoaderInfo)
 		{ 
 			_data = info.parameters;
@@ -36,7 +38,7 @@ package org.mindpirates.websubs
 		public function get margin():Number
 		{
 			if (!_data.srtMargin) {
-				return 20;
+				return DEFAULT_MARGIN;
 			}
 			return Number(_data.srtMargin);
 		}
@@ -68,7 +70,7 @@ package org.mindpirates.websubs
 		public function get dynpos():Boolean
 		{
 			if (!_data.dynpos) {
-				return true;
+				return false;
 			}
 			return _data.dynpos == 'true' || _data.dynpos == '1';
 		} 

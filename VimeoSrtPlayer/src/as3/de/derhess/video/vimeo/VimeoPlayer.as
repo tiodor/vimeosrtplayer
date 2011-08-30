@@ -176,6 +176,7 @@ package de.derhess.video.vimeo {
         //--------------------------------------------------------------------------
 		private var clip_id:int; 
 		private var loaderParams:Object; 
+		 
 		
 		public function VimeoPlayer(info:LoaderInfo, w:int, h:int, jsInterface:WebsubsJsInterface=null) {
 			this.setDimensions(w, h);  

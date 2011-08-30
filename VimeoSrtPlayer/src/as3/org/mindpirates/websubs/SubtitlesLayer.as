@@ -1,5 +1,7 @@
 package org.mindpirates.websubs
 { 
+	import com.asual.swfaddress.SWFAddress;
+	import com.asual.swfaddress.SWFAddressEvent;
 	import com.chewtinfoil.utils.StringUtils;
 	import com.greensock.TimelineLite;
 	import com.greensock.TweenLite;
@@ -38,11 +40,13 @@ package org.mindpirates.websubs
 	import flash.utils.Timer;
 	import flash.utils.describeType;
 	
+	import net.stevensacks.preloaders.CircleSlicePreloader;
+	
 	import nl.inlet42.data.subtitles.SubtitleLine;
 	import nl.inlet42.data.subtitles.SubtitleParser;
 	import nl.inlet42.data.subtitles.SubtitlesList;
 	
-	import org.mindpirates.utils.FontLoader;
+	import org.mindpirates.utils.BrowserUtil;
 	import org.mindpirates.video.VideoEvent;
 	import org.mindpirates.video.interfaces.IVideoPlayer;
 	import org.mindpirates.video.interfaces.IVimeoPlayer;
@@ -449,19 +453,20 @@ package org.mindpirates.websubs
 		}
 		
 		public var currentLanguage:Object;
-		
+		private var localizationUrl:String;
 		private function initLocalization():void
-		{	
-			if (config.localization) { 
+		{	 
+			localizationUrl = BrowserUtil.hashParam('vp-list') || config.localization;
+			if (localizationUrl) { 
 				localization = new LocalizationXML();
 				localization.noCaching = true;
 				localization.addEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete, false, 0, true);
 				localization.addEventListener(XMLProxy.ERROR, handleLocalizationXmlError, false, 0, true); 
-				localization.loadXML(config.localization);
+				localization.loadXML(localizationUrl);
 				
 				if (player.jsInterface) {
 					var event:JsEvent = new JsEvent(JsEvent.LOAD_LOCALIZATION);
-					event.localizationUrl = config.localization;
+					event.localizationUrl = localizationUrl;
 					player.jsInterface.fireEvent(event);
 				}
 			}	
@@ -491,7 +496,7 @@ package org.mindpirates.websubs
 		}
 		private function handleLocalizationXmlError(e:Event):void
 		{
-			throw new Error('Localization url '+config.localization+' not loaded!');
+			throw new Error('Localization url '+localizationUrl+' not loaded!');
 			localization.removeEventListener(XMLProxy.COMPLETE, handleLocalizationXmlComplete);
 			localization.removeEventListener(XMLProxy.ERROR, handleLocalizationXmlError); 
 			
@@ -567,7 +572,7 @@ package org.mindpirates.websubs
 				langTooltip.y = parent.mouseY;
 				
 				
-				var t:Timer = new Timer(250, 1);
+				var t:Timer = new Timer(1, 1);
 				t.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void {
 					if (langTooltip) {
 						TweenLite.to(langTooltip, 0.1, {alpha: 1});	
@@ -668,10 +673,12 @@ package org.mindpirates.websubs
 			for each (var lang:String in localization.languages) {
 				var name:String = localization.getTitleByLang(lang);
 				var item:Object = {
+					'srtFile': localization.getFileByLang(lang),
 					'lang': lang,			
 					'name': name,
 					'label': name,
-					'font': localization.getFontByLang(lang),
+					'fontName': localization.getFontNameByLang(lang),
+					'fontFile': localization.getFontFileByLang(lang),
 					'fontSize': localization.getFontSizeByLang(lang),
 					'description': localization.getDescriptionByLang(lang)
 				}
@@ -680,7 +687,7 @@ package org.mindpirates.websubs
 					need_tooltip.push( name );
 				}
 			}
-			  
+			combo.rowCount = dp.length;
 			combo.dataProvider = new DataProvider(dp);
 			player.ui.playbar.addChild(combo);
 			 
@@ -728,26 +735,15 @@ package org.mindpirates.websubs
 			return _hideCombo;
 		}
 		
+		private var nextFontName:String;
+		private var nextFontSize:Number;
+		private var spinner:CircleSlicePreloader;
+		
 		private function handleComboChange(e:Event):void
-		{  
-			
+		{   
 			var lang:String = combo.selectedItem.lang;
-			var langName:String = combo.selectedItem.title; //ISO_639_2B.getNameByCode(lang);
+			var langName:String = combo.selectedItem.title;
 			var srt:String = localization.getFileByLang(lang);
-			
-			
-			
-			var font:String = combo.selectedItem.font;	 
-			switch (font) {
-				case "Cyberbit":
-					font = new _Cyberbit().fontName;
-					break;
-				default:
-					font = SubtitleTextField.defaultFontName;
-			}			
-			var fontSize:Number = combo.selectedItem.fontSize || SubtitleTextField.defaultFontSize;	
-			textField.font = font 
-			textField.fontSize = fontSize;
 			
 			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LANGUAGE_CHANGED);
@@ -756,9 +752,7 @@ package org.mindpirates.websubs
 				player.jsInterface.fireEvent(event);
 			}
 			
-			loadSrt(srt); 
-			
-			
+			loadSrt(srt);   
 		} 
 		private function updateComboPosition(e:Event=null):void
 		{
@@ -797,6 +791,36 @@ package org.mindpirates.websubs
 		// 
 		//-------------------------------------------------------------------------------------------
 		
+		private function updateFont():void
+		{			
+			trace('update font >>')
+			var lang:String = combo.selectedItem.lang;
+			var langName:String = combo.selectedItem.title;
+			var srt:String = localization.getFileByLang(lang);			
+			var fontFile:String = combo.selectedItem.fontFile;	 
+			if (fontFile) { 
+				spinner = new CircleSlicePreloader(12,2,0x333333);
+				spinner.x = combo.x + combo.width + 12;
+				spinner.y = combo.y + 10;
+				addChild(spinner)
+				FontManager.instance.addEventListener(Event.COMPLETE, handleFontLoaded);
+				FontManager.instance.loadFont(fontFile);
+				nextFontName = combo.selectedItem.fontName;	
+				nextFontSize = combo.selectedItem.fontSize || SubtitleTextField.defaultFontSize;	
+			}			
+			else { 
+				textField.font = SubtitleTextField.defaultFontName
+				textField.fontSize = SubtitleTextField.defaultFontSize;
+			} 
+		}
+		
+		private function handleFontLoaded(e:Event):void {
+			removeChild(spinner);
+			spinner = null;
+			textField.font = nextFontName;
+			textField.fontSize = nextFontSize;
+			trace('font set to '+nextFontName+' ('+nextFontSize+')')
+		}
 		
 		public var currentSrtUrl:String;
 		public function loadSrt(file:String):void
@@ -807,11 +831,23 @@ package org.mindpirates.websubs
 				list = null;
 				return;
 			}
+			
+			
 			var urlLoader:URLLoader = new URLLoader( new URLRequest( file ) );
 			urlLoader.addEventListener(Event.COMPLETE, handleSrtLoaded, false, 0, true);
 			urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleSrtError, false, 0, true);
 			urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSrtError, false, 0, true);
 			currentSrtUrl = file;
+			
+			var i:int=0;
+			while (i<combo.dataProvider.length) {
+				//Logger.info('srtFile', i, combo.dataProvider.getItemAt(i).srtFile, file)
+				var cb_item:Object = combo.dataProvider.getItemAt(i); 
+				if (cb_item && cb_item.srtFile == file) {
+					combo.selectedIndex = i;
+				}
+				i++;
+			}
 			
 			if (player.jsInterface) {
 				var event:JsEvent = new JsEvent(JsEvent.LOAD_SRT);
@@ -831,6 +867,9 @@ package org.mindpirates.websubs
 		{ 
 			var srt_data:String = e.target.data.toString();
 			setSrtData(srt_data);
+			
+			updateFont();
+			
 			trace('srt loaded: '+currentSrtUrl)
 		}
 		public function setSrtData(value:String):void

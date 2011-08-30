@@ -39,7 +39,12 @@ package org.mindpirates.websubs
 			defaultTextFormat = textFormat;
 			antiAliasType = AntiAliasType.ADVANCED;  
 			filters = [new DropShadowFilter(2,45,0,0.5,2,2), new GlowFilter(0,1,3,3,4)]; 
-			
+			/*
+			border = true;
+			background = true;
+			backgroundColor = 0x222222;
+			*/
+			 
 			wordWrap = true;
 			
 			updateStyles()    
@@ -87,8 +92,10 @@ package org.mindpirates.websubs
 		{
 			return _fontSize;
 		}
+		private var _scale:Number;
 		public function set scale(value:Number):void
 		{ 
+			_scale = value;
 			var matrix:Matrix = transform.matrix; 
 			if (value == 1) {
 				matrix.identity();				
@@ -98,11 +105,15 @@ package org.mindpirates.websubs
 			}
 			transform.matrix = matrix;
 		}
+		public function get scale():Number
+		{
+			return _scale;
+		}
 		public function set font(name:String):void
 		{
 			_fontName = name;
 			trace(this, 'set font', name)
-			updateStyles();
+			updateStyles(); 
 		}
 	}
 }
