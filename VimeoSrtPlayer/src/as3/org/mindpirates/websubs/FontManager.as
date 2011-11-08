@@ -34,21 +34,21 @@ package org.mindpirates.websubs
 		
 		public function loadFont(swf_url:String):void
 		{
-			if (files.indexOf(swf_url) != -1) {
+			/*if (files.indexOf(swf_url) != -1) {
 				handleLoadComplete(null);
 				return;
 			}
-			files.push(swf_url); 
+			files.push(swf_url); */
 			loader.addEventListener(Event.COMPLETE, handleLoadComplete);
-			trace(this, 'loadFont('+swf_url+')');
+			//trace(this, 'loadFont('+swf_url+')');
 			loader.load(new URLRequest(swf_url));
 		}
 		
 		private function handleLoadComplete(e:Event):void
 		{   
-			trace('loaded fonts:')
+			//trace('loaded fonts:')
 			for each (var font:Font in loader.fonts) {
-				trace('> '+font.fontName)
+				//trace('> '+font.fontName)
 			} 
 			dispatchEvent( new Event(Event.COMPLETE) );
 		}

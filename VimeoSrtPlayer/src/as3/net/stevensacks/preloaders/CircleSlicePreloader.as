@@ -15,7 +15,7 @@ package net.stevensacks.preloaders
 		private var radius:int;
 		private var color:uint;
 		
-		public function CircleSlicePreloader(slices:int = 12, radius:int = 6, color:uint=0x666666)
+		public function CircleSlicePreloader(slices:int = 12, radius:int = 6, color:uint=0xffffff)
 		{
 			super();
 			this.slices = slices;
@@ -66,6 +66,18 @@ package net.stevensacks.preloaders
 			slice.graphics.drawRoundRect(-1, 0, 2, 6, 12, 12);
 			slice.graphics.endFill();
 			return slice;
+		}
+		public function setColor(clr:uint):void
+		{
+			this.color = clr;
+			var i:int=0; var max:int = numChildren;
+			while (i<max) {
+				var slice:Shape = getChildAt(i) as Shape; 
+				slice.graphics.beginFill(this.color);
+				slice.graphics.drawRoundRect(-1, 0, 2, 6, 12, 12);
+				slice.graphics.endFill();
+				i++;
+			}
 		}
 	 
 	}
