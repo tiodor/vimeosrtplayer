@@ -28,6 +28,7 @@ package org.mindpirates.websubs
 	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
 	import flash.filters.DropShadowFilter;
+	import flash.geom.ColorTransform;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.net.navigateToURL;
@@ -799,7 +800,8 @@ package org.mindpirates.websubs
 			var srt:String = localization.getFileByLang(lang);			
 			var fontFile:String = combo.selectedItem.fontFile;	 
 			if (fontFile) { 
-				spinner = new CircleSlicePreloader(12,2,0x333333);
+				spinner = new CircleSlicePreloader(12,2,0xFFFFFF);
+				spinner.filters = [new DropShadowFilter()];
 				spinner.x = combo.x + combo.width + 12;
 				spinner.y = combo.y + 10;
 				addChild(spinner)
@@ -813,10 +815,18 @@ package org.mindpirates.websubs
 				textField.fontSize = SubtitleTextField.defaultFontSize;
 			} 
 		}
+		private function fadeoutAndDestroySpinner():void
+		{
+			TweenLite.to(spinner, 0.5, {alpha: 0, scaleX:2, scaleY:2, onComplete: function():void {
+				removeChild(spinner);
+				spinner = null;
+			}});
 		
+		}
 		private function handleFontLoaded(e:Event):void {
-			removeChild(spinner);
-			spinner = null;
+			spinner.setColor(0x33CC00); 
+			fadeoutAndDestroySpinner();
+			
 			textField.font = nextFontName;
 			textField.fontSize = nextFontSize;
 			trace('font set to '+nextFontName+' ('+nextFontSize+')')
